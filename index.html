@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PNHD — Сквозная аналитика: план проекта</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Unbounded:wght@300;700;900&display=swap');
+
+  :root {
+    --bg: #0d0f0e;
+    --surface: #131614;
+    --border: #1f2421;
+    --border-bright: #2e3530;
+    --text: #d4dbd6;
+    --text-muted: #5a6660;
+    --text-dim: #3a423e;
+    --green: #4ade80; --green-dim: #1a3326;
+    --yellow: #fbbf24; --yellow-dim: #2a2010;
+    --red: #f87171; --red-dim: #2a1515;
+    --blue: #60a5fa; --blue-dim: #0f1f35;
+    --purple: #c084fc; --purple-dim: #1e1030;
+    --orange: #fb923c; --orange-dim: #2a1a08;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Unbounded', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .header {
+    border-bottom: 1px solid var(--border-bright);
+    padding: 40px 48px 32px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+  }
+  .header-label { font-size: 10px; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+  .header-title { font-family: var(--display); font-size: 28px; font-weight: 900; color: #fff; letter-spacing: -0.02em; line-height: 1.1; }
+  .header-title span { color: var(--green); }
+  .header-meta { text-align: right; font-size: 11px; color: var(--text-muted); line-height: 1.8; }
+
+  .legend {
+    display: flex; gap: 20px; padding: 14px 48px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap; align-items: center;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* GLOBAL PROGRESS */
+  .global-progress {
+    padding: 16px 48px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 16px;
+  }
+  .gp-label { font-size: 10px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+  .gp-bar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .gp-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.4s cubic-bezier(.4,0,.2,1); }
+  .gp-pct { font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--green); min-width: 36px; text-align: right; }
+
+  .summary {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 4px; padding: 24px 48px 0;
+  }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 16px 20px; }
+  .stat-val { font-family: var(--display); font-size: 28px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
+  .stat-label { font-size: 10px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  .progress-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+  .container { padding: 32px 48px; display: flex; flex-direction: column; gap: 4px; }
+
+  .phase { border: 1px solid var(--border); border-radius: 4px; overflow: hidden; transition: border-color 0.2s; }
+  .phase:hover { border-color: var(--border-bright); }
+
+  .phase-header {
+    display: grid; grid-template-columns: 48px 1fr auto auto auto;
+    align-items: center; gap: 16px;
+    padding: 12px 20px 12px 0;
+    cursor: pointer; user-select: none;
+    border-bottom: 1px solid transparent; transition: border-color 0.2s;
+  }
+  .phase.open .phase-header { border-bottom-color: var(--border); }
+  .phase-num { font-family: var(--display); font-size: 10px; font-weight: 700; color: var(--text-dim); text-align: center; letter-spacing: 0.15em; }
+  .phase-title-wrap { display: flex; flex-direction: column; gap: 2px; }
+  .phase-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); }
+  .phase-name { font-family: var(--display); font-size: 13px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+  .phase-timing { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+  .phase-done-count { font-size: 10px; color: var(--text-muted); white-space: nowrap; padding-right: 4px; }
+  .chevron { width: 14px; height: 14px; color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
+  .phase.open .chevron { transform: rotate(180deg); }
+  .phase-body { display: none; padding: 16px 20px 20px; }
+  .phase.open .phase-body { display: block; }
+
+  /* TASKS */
+  .tasks { display: flex; flex-direction: column; gap: 2px; }
+
+  .task {
+    border-radius: 3px; background: var(--surface);
+    border: 1px solid var(--border); transition: border-color 0.15s;
+    overflow: hidden;
+  }
+  .task:hover { border-color: var(--border-bright); }
+  .task.done { background: rgba(74,222,128,0.03); border-color: rgba(74,222,128,0.15); }
+  .task.done .task-title { color: var(--text-muted); text-decoration: line-through; text-decoration-color: var(--text-dim); }
+
+  .task-row {
+    display: grid; grid-template-columns: 36px 20px 1fr auto;
+    align-items: start; gap: 10px; padding: 10px 12px;
+  }
+
+  /* CHECKBOX */
+  .task-checkbox {
+    width: 16px; height: 16px; border-radius: 3px;
+    border: 1.5px solid var(--border-bright);
+    background: transparent; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px; transition: all 0.15s;
+    position: relative; user-select: none;
+  }
+  .task-checkbox:hover { border-color: var(--green); background: var(--green-dim); }
+  .task-checkbox.checked { border-color: var(--green); background: var(--green-dim); }
+  .task-checkbox.checked::after {
+    content: '';
+    width: 4px; height: 7px;
+    border-right: 2px solid var(--green);
+    border-bottom: 2px solid var(--green);
+    transform: rotate(45deg) translate(-1px, -1px);
+    display: block;
+  }
+
+  .task-icon { font-size: 12px; margin-top: 1px; text-align: center; }
+  .task-content { min-width: 0; }
+  .task-title { font-size: 12px; font-weight: 600; color: #e8ede9; margin-bottom: 3px; transition: color 0.2s; }
+  .task-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+  .task-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+
+  .tag { display: inline-block; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 6px; border-radius: 2px; font-weight: 600; }
+  .tag-sys { background: var(--blue-dim); color: var(--blue); }
+  .tag-test { background: var(--green-dim); color: var(--green); }
+  .tag-critical { background: var(--red-dim); color: var(--red); }
+  .tag-config { background: var(--purple-dim); color: var(--purple); }
+  .tag-check { background: var(--yellow-dim); color: var(--yellow); }
+  .tag-bi { background: var(--orange-dim); color: var(--orange); }
+
+  .task-status { flex-shrink: 0; margin-top: 2px; cursor: pointer; }
+  .status-badge {
+    font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 3px 7px; border-radius: 2px; white-space: nowrap; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .status-badge:hover { filter: brightness(1.2); }
+  .status-todo { background: var(--border); color: var(--text-muted); }
+  .status-broken { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+  .status-partial { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(251,191,36,0.2); }
+  .status-ok { background: var(--green-dim); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
+  .status-inprogress { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+
+  /* COMMENT AREA */
+  .task-comment-area {
+    border-top: 1px solid var(--border);
+    padding: 8px 12px 10px 58px;
+    display: none;
+  }
+  .task-comment-area.has-comment { display: block; }
+  .task.open-comment .task-comment-area { display: block; }
+
+  .comment-input {
+    width: 100%; background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border); border-radius: 3px;
+    color: var(--text); font-family: var(--mono); font-size: 11px;
+    padding: 6px 10px; resize: vertical; min-height: 52px;
+    line-height: 1.5; outline: none; transition: border-color 0.15s;
+  }
+  .comment-input:focus { border-color: var(--border-bright); }
+  .comment-input::placeholder { color: var(--text-dim); }
+
+  .comment-actions {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 6px;
+  }
+  .comment-hint { font-size: 9px; color: var(--text-dim); letter-spacing: 0.05em; }
+  .btn-comment-toggle {
+    font-size: 9px; color: var(--text-muted); background: none; border: none;
+    cursor: pointer; font-family: var(--mono); letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 2px 0;
+    transition: color 0.15s; display: flex; align-items: center; gap: 4px;
+  }
+  .btn-comment-toggle:hover { color: var(--text); }
+
+  /* TEST BLOCK */
+  .test-block { margin-top: 16px; border: 1px solid var(--border-bright); border-radius: 3px; overflow: hidden; }
+  .test-header {
+    background: rgba(74,222,128,0.05); border-bottom: 1px solid var(--border-bright);
+    padding: 8px 14px; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--green); font-weight: 600; display: flex; align-items: center; gap: 6px;
+  }
+  .tests { padding: 8px 14px 12px; display: flex; flex-direction: column; gap: 4px; }
+
+  .test-item {
+    display: grid; grid-template-columns: 20px 16px 1fr;
+    align-items: start; gap: 8px;
+    padding: 7px 10px; background: rgba(255,255,255,0.02);
+    border-radius: 2px; border-left: 2px solid transparent;
+    transition: background 0.15s;
+  }
+  .test-item.critical { border-left-color: var(--green); }
+  .test-item.test-done { background: rgba(74,222,128,0.04); }
+  .test-item.test-done .test-text { color: var(--text-muted); text-decoration: line-through; text-decoration-color: var(--text-dim); }
+
+  .test-num { font-size: 9px; color: var(--text-dim); margin-top: 2px; letter-spacing: 0.05em; }
+
+  .test-checkbox {
+    width: 14px; height: 14px; border-radius: 2px;
+    border: 1.5px solid var(--border-bright); background: transparent;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px; transition: all 0.15s; user-select: none;
+  }
+  .test-checkbox:hover { border-color: var(--green); background: var(--green-dim); }
+  .test-checkbox.checked { border-color: var(--green); background: var(--green-dim); }
+  .test-checkbox.checked::after {
+    content: ''; width: 3px; height: 6px;
+    border-right: 1.5px solid var(--green);
+    border-bottom: 1.5px solid var(--green);
+    transform: rotate(45deg) translate(-1px, -1px); display: block;
+  }
+
+  .test-body { min-width: 0; }
+  .test-text { font-size: 11px; color: var(--text); line-height: 1.5; }
+  .test-text strong { color: #fff; }
+  .test-tool { font-size: 9px; color: var(--text-muted); font-style: italic; margin-top: 2px; }
+
+  .test-comment-area { margin-top: 5px; display: none; }
+  .test-comment-area.has-comment { display: block; }
+  .test-item.open-test-comment .test-comment-area { display: block; }
+  .test-comment-input {
+    width: 100%; background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border); border-radius: 2px;
+    color: var(--text); font-family: var(--mono); font-size: 10px;
+    padding: 5px 8px; resize: none; height: 42px;
+    line-height: 1.5; outline: none; transition: border-color 0.15s;
+  }
+  .test-comment-input:focus { border-color: var(--border-bright); }
+  .test-comment-input::placeholder { color: var(--text-dim); }
+  .btn-test-comment {
+    font-size: 9px; color: var(--text-dim); background: none; border: none;
+    cursor: pointer; font-family: var(--mono); letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 3px 0; display: inline-block;
+    transition: color 0.15s;
+  }
+  .btn-test-comment:hover { color: var(--text-muted); }
+
+  /* COLOR ACCENTS */
+  .phase-1 .phase-header { background: linear-gradient(90deg, rgba(248,113,113,0.04) 0%, transparent 60%); }
+  .phase-1 .phase-num, .phase-1 .phase-label { color: var(--red); }
+  .phase-1 .progress-fill { background: var(--red); }
+  .phase-2 .phase-header { background: linear-gradient(90deg, rgba(251,191,36,0.04) 0%, transparent 60%); }
+  .phase-2 .phase-num, .phase-2 .phase-label { color: var(--yellow); }
+  .phase-2 .progress-fill { background: var(--yellow); }
+  .phase-3 .phase-header { background: linear-gradient(90deg, rgba(96,165,250,0.04) 0%, transparent 60%); }
+  .phase-3 .phase-num, .phase-3 .phase-label { color: var(--blue); }
+  .phase-3 .progress-fill { background: var(--blue); }
+  .phase-4 .phase-header { background: linear-gradient(90deg, rgba(192,132,252,0.04) 0%, transparent 60%); }
+  .phase-4 .phase-num, .phase-4 .phase-label { color: var(--purple); }
+  .phase-4 .progress-fill { background: var(--purple); }
+  .phase-5 .phase-header { background: linear-gradient(90deg, rgba(74,222,128,0.04) 0%, transparent 60%); }
+  .phase-5 .phase-num, .phase-5 .phase-label { color: var(--green); }
+  .phase-5 .progress-fill { background: var(--green); }
+
+  hr.divider { border: none; border-top: 1px solid var(--border); margin: 0 48px; }
+  .footer { padding: 20px 48px; font-size: 10px; color: var(--text-dim); letter-spacing: 0.05em; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--surface); border: 1px solid var(--border-bright);
+    color: var(--text); font-size: 11px; font-family: var(--mono);
+    padding: 10px 16px; border-radius: 4px;
+    opacity: 0; transform: translateY(8px);
+    transition: all 0.2s; pointer-events: none; z-index: 1000;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-label">Проектный план</div>
+    <div class="header-title">PNHD — Сквозная<br>аналитика <span>с нуля</span></div>
+  </div>
+  <div class="header-meta">
+    pnhd.ru<br>
+    Tilda → Roistat → Bitrix24<br>
+    Яндекс Метрика · Директ<br>
+    Версия 1.0 · Июнь 2026
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="dot" style="background:var(--red)"></div>Сломано</div>
+  <div class="legend-item"><div class="dot" style="background:var(--yellow)"></div>Частично</div>
+  <div class="legend-item"><div class="dot" style="background:var(--green)"></div>Работает</div>
+  <div class="legend-item"><div class="dot" style="background:var(--text-dim)"></div>Не настроено</div>
+  <div style="flex:1"></div>
+  <div class="legend-item" style="color:var(--text-muted);font-size:9px;">☑ клик = выполнено · статус = клик для смены · 💬 = комментарий</div>
+</div>
+
+<div class="global-progress">
+  <div class="gp-label">Общий прогресс</div>
+  <div class="gp-bar"><div class="gp-fill" id="gpFill" style="width:0%"></div></div>
+  <div class="gp-pct" id="gpPct">0%</div>
+</div>
+
+<div class="summary">
+  <div class="stat-card">
+    <div class="stat-val" style="color:var(--red)">5</div>
+    <div class="stat-label">фаз проекта</div>
+    <div class="progress-bar"><div class="progress-fill" style="background:var(--red);width:20%"></div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" style="color:var(--yellow)" id="statDone">0/21</div>
+    <div class="stat-label">задач выполнено</div>
+    <div class="progress-bar"><div class="progress-fill" id="statTaskBar" style="background:var(--yellow);width:0%"></div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" style="color:var(--green)" id="statTests">0/28</div>
+    <div class="stat-label">тестов пройдено</div>
+    <div class="progress-bar"><div class="progress-fill" id="statTestBar" style="background:var(--green);width:0%"></div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" style="color:var(--blue)">~3–4</div>
+    <div class="stat-label">недели</div>
+    <div class="progress-bar"><div class="progress-fill" style="background:var(--blue);width:0%"></div></div>
+  </div>
+</div>
+
+<div class="container" id="mainContainer">
+
+<!-- PHASE 1 -->
+<div class="phase phase-1 open" id="ph1">
+  <div class="phase-header" onclick="toggle('ph1')">
+    <div class="phase-num">01</div>
+    <div class="phase-title-wrap">
+      <div class="phase-label">Фаза 1 · Фундамент</div>
+      <div class="phase-name">Счётчики и цепочка передачи данных</div>
+    </div>
+    <div class="phase-timing">Нед. 1</div>
+    <div class="phase-done-count" id="ph1-count"></div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="phase-body">
+    <div class="tasks">
+
+      <div class="task" id="task-1-1">
+        <div class="task-row">
+          <div class="task-checkbox" onclick="toggleTask('task-1-1')"></div>
+          <div class="task-icon">🔥</div>
+          <div class="task-content">
+            <div class="task-title">Roistat: восстановить подписку и проверить счётчик</div>
+            <div class="task-desc">Подписка истекла ~6 апреля → месяц данных потерян. Убедиться что счётчик JS установлен в &lt;head&gt; на всех страницах Tilda (через Roistat → Настройки → Установка счётчика → диагностика).</div>
+            <div class="task-tags">
+              <span class="tag tag-critical">Критично</span>
+              <span class="tag tag-sys">Roistat</span>
+            </div>
+          </div>
+          <div class="task-status"><span class="status-badge status-broken" onclick="cycleStatus(event,'task-1-1')">сломано</span></div>
+        </div>
+        <div class="task-comment-area" id="ca-task-1-1">
+          <textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-1-1',this.value)" id="ci-task-1-1"></textarea>
+          <div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div>
+        </div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-1-1')"><span id="ct-task-1-1">💬 добавить комментарий</span></button></div>
+      </div>
+
+      <div class="task" id="task-1-2">
+        <div class="task-row">
+          <div class="task-checkbox" onclick="toggleTask('task-1-2')"></div>
+          <div class="task-icon">🔗</div>
+          <div class="task-content">
+            <div class="task-title">Tilda → Roistat: переключить Webhook форм</div>
+            <div class="task-desc">Сейчас формы Tilda идут напрямую в Bitrix24, минуя Roistat → roistat_visit не передаётся. Нужно: Roistat → Интеграции → Tilda → скопировать Webhook URL → вставить в Tilda → Настройки → Формы → Webhook. Обязательно включить галочку «Посылать Cookies».</div>
+            <div class="task-tags">
+              <span class="tag tag-critical">Критично</span>
+              <span class="tag tag-sys">Tilda</span>
+              <span class="tag tag-sys">Roistat</span>
+            </div>
+          </div>
+          <div class="task-status"><span class="status-badge status-broken" onclick="cycleStatus(event,'task-1-2')">не сделано</span></div>
+        </div>
+        <div class="task-comment-area" id="ca-task-1-2">
+          <textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-1-2',this.value)" id="ci-task-1-2"></textarea>
+          <div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div>
+        </div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-1-2')"><span id="ct-task-1-2">💬 добавить комментарий</span></button></div>
+      </div>
+
+      <div class="task" id="task-1-3">
+        <div class="task-row">
+          <div class="task-checkbox" onclick="toggleTask('task-1-3')"></div>
+          <div class="task-icon">🍪</div>
+          <div class="task-content">
+            <div class="task-title">Tilda: включить «Посылать Cookies» на каждой форме</div>
+            <div class="task-desc">Даже если Webhook настроен — без этого флага cookie roistat_visit не передаётся. Проверить все активные формы на сайте. Особенно формы на коммерческих страницах: /hudi, /noski, /branding.</div>
+            <div class="task-tags">
+              <span class="tag tag-critical">Критично</span>
+              <span class="tag tag-sys">Tilda</span>
+            </div>
+          </div>
+          <div class="task-status"><span class="status-badge status-broken" onclick="cycleStatus(event,'task-1-3')">не сделано</span></div>
+        </div>
+        <div class="task-comment-area" id="ca-task-1-3">
+          <textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-1-3',this.value)" id="ci-task-1-3"></textarea>
+          <div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div>
+        </div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-1-3')"><span id="ct-task-1-3">💬 добавить комментарий</span></button></div>
+      </div>
+
+      <div class="task" id="task-1-4">
+        <div class="task-row">
+          <div class="task-checkbox" onclick="toggleTask('task-1-4')"></div>
+          <div class="task-icon">📡</div>
+          <div class="task-content">
+            <div class="task-title">Roistat → Bitrix24: настроить передачу сделок</div>
+            <div class="task-desc">Roistat должен создавать сделки в Bitrix24 с источником (не дублировать с прямой интеграцией Tilda). Настроить маппинг полей: roistat_visit_id → поле UTM в лиде Bitrix. Проверить что нет двойных сделок.</div>
+            <div class="task-tags">
+              <span class="tag tag-sys">Roistat</span>
+              <span class="tag tag-sys">Bitrix24</span>
+              <span class="tag tag-config">Маппинг</span>
+            </div>
+          </div>
+          <div class="task-status"><span class="status-badge status-broken" onclick="cycleStatus(event,'task-1-4')">не настроено</span></div>
+        </div>
+        <div class="task-comment-area" id="ca-task-1-4">
+          <textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-1-4',this.value)" id="ci-task-1-4"></textarea>
+          <div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div>
+        </div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-1-4')"><span id="ct-task-1-4">💬 добавить комментарий</span></button></div>
+      </div>
+
+      <div class="task" id="task-1-5">
+        <div class="task-row">
+          <div class="task-checkbox" onclick="toggleTask('task-1-5')"></div>
+          <div class="task-icon">📞</div>
+          <div class="task-content">
+            <div class="task-title">Коллтрекинг: восстановить Базовый сценарий</div>
+            <div class="task-desc">Базовый сценарий (3 363 исторических звонка) отключён. Новый сценарий «Direct» создан без источника трафика — звонки не атрибутируются. Нужно: включить базовый сценарий или пересоздать с привязкой к источникам (SEO, Директ, Прямые, Telegram).</div>
+            <div class="task-tags">
+              <span class="tag tag-sys">Roistat</span>
+              <span class="tag tag-config">Коллтрекинг</span>
+            </div>
+          </div>
+          <div class="task-status"><span class="status-badge status-broken" onclick="cycleStatus(event,'task-1-5')">сломано</span></div>
+        </div>
+        <div class="task-comment-area" id="ca-task-1-5">
+          <textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-1-5',this.value)" id="ci-task-1-5"></textarea>
+          <div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div>
+        </div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-1-5')"><span id="ct-task-1-5">💬 добавить комментарий</span></button></div>
+      </div>
+
+    </div>
+
+    <div class="test-block">
+      <div class="test-header"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg> Тесты фазы 1</div>
+      <div class="tests">
+        <div class="test-item critical" id="test-T1.1">
+          <div class="test-checkbox" onclick="toggleTest('T1.1')"></div>
+          <div class="test-num">T1.1</div>
+          <div class="test-body">
+            <div class="test-text"><strong>Форма → Roistat с источником</strong> Зайти на pnhd.ru с UTM-меткой → заполнить форму → проверить в Roistat что лид создался с источником (не «Прямые»)</div>
+            <div class="test-tool">Браузер + Roistat → Лиды</div>
+            <div class="test-comment-area" id="tca-T1.1"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T1.1',this.value)" id="tci-T1.1"></textarea></div>
+            <button class="btn-test-comment" onclick="toggleTestComment('T1.1')"><span id="tct-T1.1">+ результат</span></button>
+          </div>
+        </div>
+        <div class="test-item" id="test-T1.2">
+          <div class="test-checkbox" onclick="toggleTest('T1.2')"></div>
+          <div class="test-num">T1.2</div>
+          <div class="test-body">
+            <div class="test-text"><strong>Нет дублей в Bitrix</strong> Проверить в Bitrix24 что лид создан один раз (не дублируется от Tilda напрямую + от Roistat)</div>
+            <div class="test-tool">Bitrix24 → CRM → Лиды</div>
+            <div class="test-comment-area" id="tca-T1.2"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T1.2',this.value)" id="tci-T1.2"></textarea></div>
+            <button class="btn-test-comment" onclick="toggleTestComment('T1.2')"><span id="tct-T1.2">+ результат</span></button>
+          </div>
+        </div>
+        <div class="test-item" id="test-T1.3">
+          <div class="test-checkbox" onclick="toggleTest('T1.3')"></div>
+          <div class="test-num">T1.3</div>
+          <div class="test-body">
+            <div class="test-text"><strong>Звонок атрибутируется</strong> Позвонить на подменный номер с мобильного → в Roistat появился звонок с источником (не без источника)</div>
+            <div class="test-tool">Roistat → Коллтрекинг</div>
+            <div class="test-comment-area" id="tca-T1.3"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T1.3',this.value)" id="tci-T1.3"></textarea></div>
+            <button class="btn-test-comment" onclick="toggleTestComment('T1.3')"><span id="tct-T1.3">+ результат</span></button>
+          </div>
+        </div>
+        <div class="test-item" id="test-T1.4">
+          <div class="test-checkbox" onclick="toggleTest('T1.4')"></div>
+          <div class="test-num">T1.4</div>
+          <div class="test-body">
+            <div class="test-text"><strong>Cookie roistat_visit</strong> DevTools → Application → Cookies → pnhd.ru → cookie roistat_visit присутствует после захода на сайт</div>
+            <div class="test-tool">Chrome DevTools</div>
+            <div class="test-comment-area" id="tca-T1.4"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T1.4',this.value)" id="tci-T1.4"></textarea></div>
+            <button class="btn-test-comment" onclick="toggleTestComment('T1.4')"><span id="tct-T1.4">+ результат</span></button>
+          </div>
+        </div>
+        <div class="test-item" id="test-T1.5">
+          <div class="test-checkbox" onclick="toggleTest('T1.5')"></div>
+          <div class="test-num">T1.5</div>
+          <div class="test-body">
+            <div class="test-text"><strong>Диагностика счётчика OK</strong> Roistat → Настройки → Счётчик → диагностика показывает «Счётчик установлен» на всех страницах</div>
+            <div class="test-tool">Roistat диагностика</div>
+            <div class="test-comment-area" id="tca-T1.5"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T1.5',this.value)" id="tci-T1.5"></textarea></div>
+            <button class="btn-test-comment" onclick="toggleTestComment('T1.5')"><span id="tct-T1.5">+ результат</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 2 -->
+<div class="phase phase-2" id="ph2">
+  <div class="phase-header" onclick="toggle('ph2')">
+    <div class="phase-num">02</div>
+    <div class="phase-title-wrap">
+      <div class="phase-label">Фаза 2 · Атрибуция</div>
+      <div class="phase-name">UTM-разметка всех каналов</div>
+    </div>
+    <div class="phase-timing">Нед. 1–2</div>
+    <div class="phase-done-count" id="ph2-count"></div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="phase-body">
+    <div class="tasks">
+
+      <div class="task" id="task-2-1">
+        <div class="task-row">
+          <div class="task-checkbox" onclick="toggleTask('task-2-1')"></div>
+          <div class="task-icon">🎯</div>
+          <div class="task-content">
+            <div class="task-title">Яндекс Директ: добавить UTM во все кампании</div>
+            <div class="task-desc">Шаблон: utm_source=yandex&utm_medium=cpc&utm_campaign={campaign_id}&utm_term={keyword}&utm_content={ad_id}. Добавить в шаблон URL на уровне кампании. Проверить что RSY идёт с utm_medium=cpm отдельно.</div>
+            <div class="task-tags"><span class="tag tag-sys">Директ</span><span class="tag tag-config">UTM</span></div>
+          </div>
+          <div class="task-status"><span class="status-badge status-partial" onclick="cycleStatus(event,'task-2-1')">частично</span></div>
+        </div>
+        <div class="task-comment-area" id="ca-task-2-1"><textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-2-1',this.value)" id="ci-task-2-1"></textarea><div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div></div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-2-1')"><span id="ct-task-2-1">💬 добавить комментарий</span></button></div>
+      </div>
+
+      <div class="task" id="task-2-2">
+        <div class="task-row">
+          <div class="task-checkbox" onclick="toggleTask('task-2-2')"></div>
+          <div class="task-icon">📱</div>
+          <div class="task-content">
+            <div class="task-title">Telegram: UTM-разметка всех ссылок в канале и постах</div>
+            <div class="task-desc">Конверсия 11.6% — тёплый канал, важно понимать какие посты конвертируют. utm_source=telegram&utm_medium=social&utm_campaign=post_{дата}. Использовать UTM-builder или Roistat → Разметчик.</div>
+            <div class="task-tags"><span class="tag tag-sys">Telegram</span><span class="tag tag-config">UTM</span></div>
+          </div>
+          <div class="task-status"><span class="status-badge status-todo" onclick="cycleStatus(event,'task-2-2')">нет</span></div>
+        </div>
+        <div class="task-comment-area" id="ca-task-2-2"><textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-2-2',this.value)" id="ci-task-2-2"></textarea><div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div></div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-2-2')"><span id="ct-task-2-2">💬 добавить комментарий</span></button></div>
+      </div>
+
+      <div class="task" id="task-2-3">
+        <div class="task-row">
+          <div class="task-checkbox" onclick="toggleTask('task-2-3')"></div>
+          <div class="task-icon">💙</div>
+          <div class="task-content">
+            <div class="task-title">ВКонтакте: UTM во все публикации и объявления</div>
+            <div class="task-desc">Конверсия 10.3% — аналогично Telegram. utm_source=vk&utm_medium=social (органика) / utm_medium=cpc (таргет). Разделить органику и рекламу для корректного сравнения стоимости лида.</div>
+            <div class="task-tags"><span class="tag tag-sys">VKontakte</span><span class="tag tag-config">UTM</span></div>
+          </div>
+          <div class="task-status"><span class="status-badge status-todo" onclick="cycleStatus(event,'task-2-3')">нет</span></div>
+        </div>
+        <div class="task-comment-area" id="ca-task-2-3"><textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-2-3',this.value)" id="ci-task-2-3"></textarea><div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div></div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-2-3')"><span id="ct-task-2-3">💬 добавить комментарий</span></button></div>
+      </div>
+
+      <div class="task" id="task-2-4">
+        <div class="task-row">
+          <div class="task-checkbox" onclick="toggleTask('task-2-4')"></div>
+          <div class="task-icon">📧</div>
+          <div class="task-content">
+            <div class="task-title">Outreach-рассылки: настроить источник в Bitrix при создании лида</div>
+            <div class="task-desc">Лиды от сервиса рассылок (Лера) падают напрямую в Bitrix без атрибуции. Нужно: в Webhook добавить поле UTM_SOURCE=outreach или SOURCE_ID через crm.lead.add с явным значением.</div>
+            <div class="task-tags"><span class="tag tag-sys">Bitrix24</span><span class="tag tag-config">Outreach</span></div>
+          </div>
+          <div class="task-status"><span class="status-badge status-broken" onclick="cycleStatus(event,'task-2-4')">не настроено</span></div>
+        </div>
+        <div class="task-comment-area" id="ca-task-2-4"><textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-2-4',this.value)" id="ci-task-2-4"></textarea><div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div></div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-2-4')"><span id="ct-task-2-4">💬 добавить комментарий</span></button></div>
+      </div>
+
+      <div class="task" id="task-2-5">
+        <div class="task-row">
+          <div class="task-checkbox" onclick="toggleTask('task-2-5')"></div>
+          <div class="task-icon">📨</div>
+          <div class="task-content">
+            <div class="task-title">Email-трекинг Roistat: настроить и проверить подменные адреса</div>
+            <div class="task-desc">Email-трекинг исторически работал, но после лапса подписки статус неизвестен. Проверить что подменные адреса @pnhd.ru активны. Осторожно: выявлен catch-all на домене — возможно спам-риск от wildcard MX. Разобраться с почтовым хостингом.</div>
+            <div class="task-tags"><span class="tag tag-sys">Roistat</span><span class="tag tag-config">Email-трекинг</span><span class="tag tag-check">Осторожно</span></div>
+          </div>
+          <div class="task-status"><span class="status-badge status-partial" onclick="cycleStatus(event,'task-2-5')">под вопросом</span></div>
+        </div>
+        <div class="task-comment-area" id="ca-task-2-5"><textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-2-5',this.value)" id="ci-task-2-5"></textarea><div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div></div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-2-5')"><span id="ct-task-2-5">💬 добавить комментарий</span></button></div>
+      </div>
+
+    </div>
+    <div class="test-block">
+      <div class="test-header"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg> Тесты фазы 2</div>
+      <div class="tests">
+        <div class="test-item critical" id="test-T2.1">
+          <div class="test-checkbox" onclick="toggleTest('T2.1')"></div>
+          <div class="test-num">T2.1</div>
+          <div class="test-body"><div class="test-text"><strong>UTM Директ в URL</strong> Кликнуть на объявление в Директе → URL содержит utm_source=yandex&utm_medium=cpc</div><div class="test-tool">Браузер, проверка URL</div><div class="test-comment-area" id="tca-T2.1"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T2.1',this.value)" id="tci-T2.1"></textarea></div><button class="btn-test-comment" onclick="toggleTestComment('T2.1')"><span id="tct-T2.1">+ результат</span></button></div>
+        </div>
+        <div class="test-item" id="test-T2.2">
+          <div class="test-checkbox" onclick="toggleTest('T2.2')"></div>
+          <div class="test-num">T2.2</div>
+          <div class="test-body"><div class="test-text"><strong>Telegram-ссылка в Метрике</strong> Ссылка из Telegram → URL содержит utm_source=telegram → в Метрике источник не «Прямые»</div><div class="test-tool">Яндекс Метрика → Источники</div><div class="test-comment-area" id="tca-T2.2"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T2.2',this.value)" id="tci-T2.2"></textarea></div><button class="btn-test-comment" onclick="toggleTestComment('T2.2')"><span id="tct-T2.2">+ результат</span></button></div>
+        </div>
+        <div class="test-item" id="test-T2.3">
+          <div class="test-checkbox" onclick="toggleTest('T2.3')"></div>
+          <div class="test-num">T2.3</div>
+          <div class="test-body"><div class="test-text"><strong>Outreach лид в Bitrix</strong> Тестовая заявка через outreach-канал → лид создан с SOURCE_ID = «Outreach» (не пустым)</div><div class="test-tool">Bitrix24 → карточка лида</div><div class="test-comment-area" id="tca-T2.3"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T2.3',this.value)" id="tci-T2.3"></textarea></div><button class="btn-test-comment" onclick="toggleTestComment('T2.3')"><span id="tct-T2.3">+ результат</span></button></div>
+        </div>
+        <div class="test-item" id="test-T2.4">
+          <div class="test-checkbox" onclick="toggleTest('T2.4')"></div>
+          <div class="test-num">T2.4</div>
+          <div class="test-body"><div class="test-text"><strong>RSY с utm_medium=cpm</strong> RSY-клик идёт с utm_medium=cpm (а не cpc) — разделение поиска и сетей Директа</div><div class="test-tool">Roistat → Сводка → фильтр</div><div class="test-comment-area" id="tca-T2.4"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T2.4',this.value)" id="tci-T2.4"></textarea></div><button class="btn-test-comment" onclick="toggleTestComment('T2.4')"><span id="tct-T2.4">+ результат</span></button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 3 -->
+<div class="phase phase-3" id="ph3">
+  <div class="phase-header" onclick="toggle('ph3')">
+    <div class="phase-num">03</div>
+    <div class="phase-title-wrap">
+      <div class="phase-label">Фаза 3 · CRM</div>
+      <div class="phase-name">Воронка и передача данных в Bitrix24</div>
+    </div>
+    <div class="phase-timing">Нед. 2</div>
+    <div class="phase-done-count" id="ph3-count"></div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="phase-body">
+    <div class="tasks">
+
+      <div class="task" id="task-3-1">
+        <div class="task-row">
+          <div class="task-checkbox" onclick="toggleTask('task-3-1')"></div>
+          <div class="task-icon">🗂</div>
+          <div class="task-content">
+            <div class="task-title">Источники лидов в Bitrix: проверить и стандартизировать</div>
+            <div class="task-desc">Аудит заполненности поля SOURCE_ID, создание справочника источников (SEO, Директ, Telegram, ВКонтакте, Outreach, Прямые, Email), настройка обязательного поля при создании лида менеджером.</div>
+            <div class="task-tags"><span class="tag tag-sys">Bitrix24</span><span class="tag tag-config">Воронка</span></div>
+          </div>
+          <div class="task-status"><span class="status-badge status-partial" onclick="cycleStatus(event,'task-3-1')">частично</span></div>
+        </div>
+        <div class="task-comment-area" id="ca-task-3-1"><textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-3-1',this.value)" id="ci-task-3-1"></textarea><div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div></div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-3-1')"><span id="ct-task-3-1">💬 добавить комментарий</span></button></div>
+      </div>
+
+      <div class="task" id="task-3-2">
+        <div class="task-row">
+          <div class="task-checkbox" onclick="toggleTask('task-3-2')"></div>
+          <div class="task-icon">📊</div>
+          <div class="task-content">
+            <div class="task-title">UTM-поля в карточке лида/сделки Bitrix</div>
+            <div class="task-desc">Добавить пользовательские поля: UTM_SOURCE, UTM_MEDIUM, UTM_CAMPAIGN, UTM_TERM. Настроить маппинг в Roistat → Bitrix: при создании сделки через Roistat автоматически заполнять эти поля. Для прямых Webhook — добавить в тело запроса.</div>
+            <div class="task-tags"><span class="tag tag-sys">Bitrix24</span><span class="tag tag-sys">Roistat</span><span class="tag tag-config">UTM</span></div>
+          </div>
+          <div class="task-status"><span class="status-badge status-broken" onclick="cycleStatus(event,'task-3-2')">не настроено</span></div>
+        </div>
+        <div class="task-comment-area" id="ca-task-3-2"><textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-3-2',this.value)" id="ci-task-3-2"></textarea><div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div></div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-3-2')"><span id="ct-task-3-2">💬 добавить комментарий</span></button></div>
+      </div>
+
+      <div class="task" id="task-3-3">
+        <div class="task-row">
+          <div class="task-checkbox" onclick="toggleTask('task-3-3')"></div>
+          <div class="task-icon">🎯</div>
+          <div class="task-content">
+            <div class="task-title">Цели в Яндекс Метрике: восстановить и расширить</div>
+            <div class="task-desc">Конверсии упали до нуля в апреле из-за Roistat. После восстановления проверить что цели (отправка формы, звонок, email-клик) снова фиксируются. Добавить цель «Просмотр контактов» и «Клик на Telegram/WhatsApp» если их нет.</div>
+            <div class="task-tags"><span class="tag tag-sys">Метрика</span><span class="tag tag-config">Цели</span></div>
+          </div>
+          <div class="task-status"><span class="status-badge status-broken" onclick="cycleStatus(event,'task-3-3')">сломано</span></div>
+        </div>
+        <div class="task-comment-area" id="ca-task-3-3"><textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-3-3',this.value)" id="ci-task-3-3"></textarea><div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div></div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-3-3')"><span id="ct-task-3-3">💬 добавить комментарий</span></button></div>
+      </div>
+
+      <div class="task" id="task-3-4">
+        <div class="task-row">
+          <div class="task-checkbox" onclick="toggleTask('task-3-4')"></div>
+          <div class="task-icon">💬</div>
+          <div class="task-content">
+            <div class="task-title">Telegram-обращения: настроить атрибуцию прямых чатов</div>
+            <div class="task-desc">Клиент пишет в Telegram напрямую → лид в Bitrix создаётся без roistat_visit (архитектурное ограничение). Решение: создать источник «Telegram-директ» в Bitrix; менеджер обязательно указывает источник при создании лида; или бот с UTM-ссылкой.</div>
+            <div class="task-tags"><span class="tag tag-sys">Telegram</span><span class="tag tag-sys">Bitrix24</span><span class="tag tag-config">Ручная атрибуция</span></div>
+          </div>
+          <div class="task-status"><span class="status-badge status-broken" onclick="cycleStatus(event,'task-3-4')">нет</span></div>
+        </div>
+        <div class="task-comment-area" id="ca-task-3-4"><textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-3-4',this.value)" id="ci-task-3-4"></textarea><div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div></div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-3-4')"><span id="ct-task-3-4">💬 добавить комментарий</span></button></div>
+      </div>
+
+    </div>
+    <div class="test-block">
+      <div class="test-header"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg> Тесты фазы 3</div>
+      <div class="tests">
+        <div class="test-item critical" id="test-T3.1"><div class="test-checkbox" onclick="toggleTest('T3.1')"></div><div class="test-num">T3.1</div><div class="test-body"><div class="test-text"><strong>UTM в карточке лида</strong> Тестовая заявка с utm_source=yandex → поле UTM_SOURCE в Bitrix = «yandex» (не пустое)</div><div class="test-tool">Bitrix24 → CRM → Лиды</div><div class="test-comment-area" id="tca-T3.1"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T3.1',this.value)" id="tci-T3.1"></textarea></div><button class="btn-test-comment" onclick="toggleTestComment('T3.1')"><span id="tct-T3.1">+ результат</span></button></div></div>
+        <div class="test-item" id="test-T3.2"><div class="test-checkbox" onclick="toggleTest('T3.2')"></div><div class="test-num">T3.2</div><div class="test-body"><div class="test-text"><strong>100% SOURCE_ID</strong> Выгрузить 20 последних лидов → все имеют заполненное поле SOURCE_ID</div><div class="test-tool">Bitrix24 → Экспорт лидов</div><div class="test-comment-area" id="tca-T3.2"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T3.2',this.value)" id="tci-T3.2"></textarea></div><button class="btn-test-comment" onclick="toggleTestComment('T3.2')"><span id="tct-T3.2">+ результат</span></button></div></div>
+        <div class="test-item" id="test-T3.3"><div class="test-checkbox" onclick="toggleTest('T3.3')"></div><div class="test-num">T3.3</div><div class="test-body"><div class="test-text"><strong>Цель «Форма» в Метрике</strong> Заполнить тестовую форму → цель засчитывается в реальном времени в Метрике</div><div class="test-tool">Метрика → Цели → реальное время</div><div class="test-comment-area" id="tca-T3.3"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T3.3',this.value)" id="tci-T3.3"></textarea></div><button class="btn-test-comment" onclick="toggleTestComment('T3.3')"><span id="tct-T3.3">+ результат</span></button></div></div>
+        <div class="test-item" id="test-T3.4"><div class="test-checkbox" onclick="toggleTest('T3.4')"></div><div class="test-num">T3.4</div><div class="test-body"><div class="test-text"><strong>Конверсии в отчёте Метрики</strong> Источники → Конверсии → ненулевые значения за последние 7 дней</div><div class="test-tool">Яндекс Метрика</div><div class="test-comment-area" id="tca-T3.4"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T3.4',this.value)" id="tci-T3.4"></textarea></div><button class="btn-test-comment" onclick="toggleTestComment('T3.4')"><span id="tct-T3.4">+ результат</span></button></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 4 -->
+<div class="phase phase-4" id="ph4">
+  <div class="phase-header" onclick="toggle('ph4')">
+    <div class="phase-num">04</div>
+    <div class="phase-title-wrap">
+      <div class="phase-label">Фаза 4 · Аналитика</div>
+      <div class="phase-name">Сквозные отчёты и дашборд</div>
+    </div>
+    <div class="phase-timing">Нед. 3</div>
+    <div class="phase-done-count" id="ph4-count"></div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="phase-body">
+    <div class="tasks">
+      <div class="task" id="task-4-1">
+        <div class="task-row"><div class="task-checkbox" onclick="toggleTask('task-4-1')"></div><div class="task-icon">📈</div><div class="task-content"><div class="task-title">Roistat: настроить сводный отчёт по каналам</div><div class="task-desc">Настроить в Roistat → Сводка: столбцы — визиты, лиды, конверсия, сделки, выручка, ROMI по каждому источнику. Подключить расходы Директа через интеграцию. Установить плановые KPI по каналам.</div><div class="task-tags"><span class="tag tag-sys">Roistat</span><span class="tag tag-bi">BI</span></div></div><div class="task-status"><span class="status-badge status-todo" onclick="cycleStatus(event,'task-4-1')">нет</span></div></div>
+        <div class="task-comment-area" id="ca-task-4-1"><textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-4-1',this.value)" id="ci-task-4-1"></textarea><div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div></div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-4-1')"><span id="ct-task-4-1">💬 добавить комментарий</span></button></div>
+      </div>
+      <div class="task" id="task-4-2">
+        <div class="task-row"><div class="task-checkbox" onclick="toggleTask('task-4-2')"></div><div class="task-icon">💰</div><div class="task-content"><div class="task-title">Подключить расходы рекламных каналов к Roistat</div><div class="task-desc">Яндекс Директ → Roistat через официальную интеграцию (автоматически). ВКонтакте таргет — через интеграцию VK Ads. Outreach — вручную или через API. Без расходов ROMI/CPL не считается.</div><div class="task-tags"><span class="tag tag-sys">Roistat</span><span class="tag tag-sys">Директ</span><span class="tag tag-bi">Расходы</span></div></div><div class="task-status"><span class="status-badge status-todo" onclick="cycleStatus(event,'task-4-2')">нет</span></div></div>
+        <div class="task-comment-area" id="ca-task-4-2"><textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-4-2',this.value)" id="ci-task-4-2"></textarea><div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div></div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-4-2')"><span id="ct-task-4-2">💬 добавить комментарий</span></button></div>
+      </div>
+      <div class="task" id="task-4-3">
+        <div class="task-row"><div class="task-checkbox" onclick="toggleTask('task-4-3')"></div><div class="task-icon">🗺</div><div class="task-content"><div class="task-title">Воронка по каналам: визиты → лид → сделка → выручка</div><div class="task-desc">Связать: Метрика (визиты) + Roistat proxy-лиды (с источником) + Bitrix сделки + Bitrix выручка. Джойн по телефону или roistat_visit_id. Сводная таблица конверсии по каждому каналу на каждом этапе.</div><div class="task-tags"><span class="tag tag-bi">Воронка</span><span class="tag tag-sys">Python/pandas</span></div></div><div class="task-status"><span class="status-badge status-todo" onclick="cycleStatus(event,'task-4-3')">нет</span></div></div>
+        <div class="task-comment-area" id="ca-task-4-3"><textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-4-3',this.value)" id="ci-task-4-3"></textarea><div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div></div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-4-3')"><span id="ct-task-4-3">💬 добавить комментарий</span></button></div>
+      </div>
+      <div class="task" id="task-4-4">
+        <div class="task-row"><div class="task-checkbox" onclick="toggleTask('task-4-4')"></div><div class="task-icon">📋</div><div class="task-content"><div class="task-title">Регулярный отчёт: шаблон еженедельного мониторинга</div><div class="task-desc">Шаблон (Google Sheets или Roistat): визиты / лиды / CR / сделки / выручка / CPL / ROMI по каналам. Автоматическая отправка раз в неделю. Алерты при аномальных отклонениях.</div><div class="task-tags"><span class="tag tag-bi">Отчёт</span><span class="tag tag-config">Автоматизация</span></div></div><div class="task-status"><span class="status-badge status-todo" onclick="cycleStatus(event,'task-4-4')">нет</span></div></div>
+        <div class="task-comment-area" id="ca-task-4-4"><textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-4-4',this.value)" id="ci-task-4-4"></textarea><div class="comment-actions"><span class="comment-hint">сохраняется автоматически</span></div></div>
+        <div style="padding:0 12px 8px 58px"><button class="btn-comment-toggle" onclick="toggleComment('task-4-4')"><span id="ct-task-4-4">💬 добавить комментарий</span></button></div>
+      </div>
+    </div>
+    <div class="test-block">
+      <div class="test-header"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg> Тесты фазы 4</div>
+      <div class="tests">
+        <div class="test-item critical" id="test-T4.1"><div class="test-checkbox" onclick="toggleTest('T4.1')"></div><div class="test-num">T4.1</div><div class="test-body"><div class="test-text"><strong>Все каналы в Сводке</strong> Roistat → Сводка → текущая неделя: SEO, Директ, Telegram, ВКонтакте, Outreach — все с ненулевыми лидами</div><div class="test-tool">Roistat → Сводка</div><div class="test-comment-area" id="tca-T4.1"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T4.1',this.value)" id="tci-T4.1"></textarea></div><button class="btn-test-comment" onclick="toggleTestComment('T4.1')"><span id="tct-T4.1">+ результат</span></button></div></div>
+        <div class="test-item" id="test-T4.2"><div class="test-checkbox" onclick="toggleTest('T4.2')"></div><div class="test-num">T4.2</div><div class="test-body"><div class="test-text"><strong>CPL Директа считается</strong> Расходы Директа импортированы → CPL автоматически (не «0» и не «—»)</div><div class="test-tool">Roistat → Директ интеграция</div><div class="test-comment-area" id="tca-T4.2"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T4.2',this.value)" id="tci-T4.2"></textarea></div><button class="btn-test-comment" onclick="toggleTestComment('T4.2')"><span id="tct-T4.2">+ результат</span></button></div></div>
+        <div class="test-item" id="test-T4.3"><div class="test-checkbox" onclick="toggleTest('T4.3')"></div><div class="test-num">T4.3</div><div class="test-body"><div class="test-text"><strong>Джойн coverage >80%</strong> Roistat-лид + Bitrix-сделка джойн по телефону даёт покрытие >80% (сейчас ~30%)</div><div class="test-tool">Python/pandas, экспорт обоих файлов</div><div class="test-comment-area" id="tca-T4.3"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T4.3',this.value)" id="tci-T4.3"></textarea></div><button class="btn-test-comment" onclick="toggleTestComment('T4.3')"><span id="tct-T4.3">+ результат</span></button></div></div>
+        <div class="test-item" id="test-T4.4"><div class="test-checkbox" onclick="toggleTest('T4.4')"></div><div class="test-num">T4.4</div><div class="test-body"><div class="test-text"><strong>Автоотчёт приходит</strong> Еженедельный отчёт приходит на email в понедельник без ручного запуска</div><div class="test-tool">Roistat → Отчёты → Автоотправка</div><div class="test-comment-area" id="tca-T4.4"><textarea class="test-comment-input" placeholder="Результат теста..." oninput="saveTestComment('T4.4',this.value)" id="tci-T4.4"></textarea></div><button class="btn-test-comment" onclick="toggleTestComment('T4.4')"><span id="tct-T4.4">+ результат</span></button></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 5 -->
+<div class="phase phase-5" id="ph5">
+  <div class="phase-header" onclick="toggle('ph5')">
+    <div class="phase-num">05</div>
+    <div class="phase-title-wrap">
+      <div class="phase-label">Фаза 5 · Контроль</div>
+      <div class="phase-name">Регламент и предотвращение потерь</div>
+    </div>
+    <div class="phase-timing">Нед. 3–4</div>
+    <div class="phase-done-count" id="ph5-count"></div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="phase-body">
+    <div class="tasks">
+      <div class="task" id="task-5-1">
+        <div class="task-row"><div class="task-checkbox" onclick="toggleTask('task-5-1')"></div><div class="task-icon">🔔</div><div class="task-content"><div class="task-title">Алерт: мониторинг состояния Roistat</div><div class="task-desc">Настроить: 1) автоплатёж подписки Roistat; 2) алерт на падение лидов до нуля → уведомление в Telegram/email; 3) ежемесячная проверка статуса счётчика. Повторение апрельского лапса неприемлемо.</div><div class="task-tags"><span class="tag tag-critical">Критично</span><span class="tag tag-config">Мониторинг</span></div></div><div class="task-status"><span class="status-badge status-broken" onclick="cycleStatus(event,'task-5-1')">нет</span></div></div>
+        <div class="task-comment-area" id="ca-task-5-1"><textarea class="comment-input" placeholder="Комментарий к задаче..." oninput="saveComment('task-5-1',this.value)" id="ci-task-5-1"></
