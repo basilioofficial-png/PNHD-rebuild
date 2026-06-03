@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PNHD — Задачи</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff;
+    --bg-hover: #f7f7f5;
+    --bg-comment: #fbfaf8;
+    --border: #e8e7e3;
+    --border-light: #f0eeeb;
+    --text: #1a1a18;
+    --text-secondary: #8b8880;
+    --text-muted: #b5b3af;
+    --accent: #2f6b4a;
+    --accent-light: #edf4f0;
+    --tag-bg: #f0eeeb;
+    --done-text: #b5b3af;
+    --radius: 6px;
+  }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .sidebar {
+    position: fixed; top: 0; left: 0;
+    width: 240px; height: 100vh;
+    background: var(--bg-hover); border-right: 1px solid var(--border);
+    padding: 32px 0; overflow-y: auto; z-index: 10;
+  }
+  .sidebar-logo { padding: 0 20px 24px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .sidebar-logo span { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; letter-spacing: 0.12em; color: var(--text); text-transform: uppercase; }
+  .sidebar-logo small { display: block; font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 20px; font-size: 13.5px; color: var(--text-secondary);
+    cursor: pointer; transition: background 0.12s, color 0.12s;
+    text-decoration: none; position: relative;
+  }
+  .nav-item:hover { background: var(--border-light); color: var(--text); }
+  .nav-item.active { background: var(--border); color: var(--text); font-weight: 500; }
+  .nav-item.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); border-radius: 0 2px 2px 0; }
+  .nav-count { margin-left: auto; font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); background: var(--border); padding: 1px 6px; border-radius: 10px; }
+  .nav-section { padding: 20px 20px 6px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+  .main { margin-left: 240px; min-height: 100vh; }
+  .topbar {
+    position: sticky; top: 0;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 48px; display: flex; align-items: center; justify-content: space-between; z-index: 5;
+  }
+  .topbar-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 500; }
+  .topbar-meta { font-size: 12px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+  .stats-row { display: flex; gap: 24px; padding: 20px 48px; border-bottom: 1px solid var(--border); background: var(--bg-hover); }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat-value { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 500; }
+  .stat-value.green { color: var(--accent); }
+  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .progress-bar-wrap { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+  .progress-bar-track { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
+  .content { padding: 40px 48px 80px; max-width: 820px; }
+  .list-block { margin-bottom: 48px; }
+  .list-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .list-title { font-family: 'Lora', serif; font-size: 22px; font-weight: 500; }
+  .list-subtitle { font-size: 12px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+  .list-progress { margin-left: auto; font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); }
+  .task { border-bottom: 1px solid var(--border-light); }
+  .task-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 8px; border-radius: var(--radius); transition: background 0.1s; position: relative; }
+  .task-row:hover { background: var(--bg-hover); }
+  .task-row:hover .task-actions { opacity: 1; }
+  .checkbox {
+    width: 16px; height: 16px; min-width: 16px;
+    border: 1.5px solid var(--border); border-radius: 3px; margin-top: 2px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; background: var(--bg); cursor: pointer;
+  }
+  .checkbox:hover { border-color: var(--accent); }
+  .checkbox.checked { background: var(--accent); border-color: var(--accent); }
+  .checkbox.checked::after { content: ''; width: 9px; height: 5px; border-left: 1.5px solid white; border-bottom: 1.5px solid white; transform: rotate(-45deg) translateY(-1px); display: block; }
+  .task-body { flex: 1; min-width: 0; }
+  .task-text { font-size: 14px; line-height: 1.5; color: var(--text); transition: color 0.15s; user-select: none; }
+  .task-text.done { color: var(--done-text); text-decoration: line-through; }
+  .task-note { font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
+  .task-num { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); min-width: 20px; margin-top: 3px; user-select: none; }
+  .subtasks { margin-left: 46px; margin-bottom: 2px; }
+  .subtask { display: flex; align-items: flex-start; gap: 8px; padding: 5px 8px; border-radius: var(--radius); cursor: pointer; transition: background 0.1s; }
+  .subtask:hover { background: var(--bg-hover); }
+  .subtask .checkbox { width: 13px; height: 13px; min-width: 13px; border-radius: 50%; margin-top: 3px; }
+  .subtask-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; user-select: none; }
+  .subtask-text.done { color: var(--done-text); text-decoration: line-through; }
+  .task-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .tag { font-size: 11px; font-family: 'IBM Plex Mono', monospace; padding: 1px 7px; border-radius: 3px; background: var(--tag-bg); color: var(--text-muted); }
+  .tag.waiting { background: #fef3e2; color: #b07b2a; }
+  .tag.urgent { background: #fde8e8; color: #c0392b; }
+  .tag.dev { background: #e8f0fe; color: #3b5bdb; }
+  .tag.seo { background: #e8f4f0; color: #2f6b4a; }
+  .task-actions { opacity: 0; transition: opacity 0.1s; display: flex; align-items: center; gap: 2px; margin-top: 2px; }
+  .action-btn { background: none; border: none; cursor: pointer; padding: 3px 8px; border-radius: 4px; font-size: 12px; color: var(--text-muted); transition: background 0.1s, color 0.1s; white-space: nowrap; font-family: 'IBM Plex Sans', sans-serif; }
+  .action-btn:hover { background: var(--border); color: var(--text); }
+  .comment-badge { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); }
+  .comments-area { margin-left: 46px; margin-bottom: 8px; display: none; }
+  .comments-area.open { display: block; }
+  .comment { display: flex; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border-light); }
+  .comment-avatar { width: 22px; height: 22px; min-width: 22px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: var(--accent); margin-top: 1px; font-family: 'IBM Plex Mono', monospace; }
+  .comment-content { flex: 1; }
+  .comment-meta { font-size: 11px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; margin-bottom: 3px; }
+  .comment-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+  .comment-delete { background: none; border: none; cursor: pointer; font-size: 11px; color: var(--text-muted); padding: 2px 4px; border-radius: 3px; margin-left: auto; opacity: 0; transition: opacity 0.1s; }
+  .comment:hover .comment-delete { opacity: 1; }
+  .comment-delete:hover { color: #c0392b; background: #fde8e8; }
+  .comment-input-row { display: flex; gap: 8px; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--border-light); }
+  .comment-input { flex: 1; border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 10px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: var(--bg-comment); outline: none; transition: border-color 0.15s; resize: none; min-height: 36px; }
+  .comment-input:focus { border-color: var(--accent); background: var(--bg); }
+  .comment-input::placeholder { color: var(--text-muted); }
+  .comment-submit { background: var(--accent); color: white; border: none; border-radius: var(--radius); padding: 7px 14px; font-size: 12px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; cursor: pointer; transition: opacity 0.15s; align-self: flex-end; }
+  .comment-submit:hover { opacity: 0.85; }
+  .empty-comments { padding: 10px 0 6px; font-size: 12px; color: var(--text-muted); font-style: italic; }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <span>PNHD</span>
+    <small>Управление задачами</small>
+  </div>
+  <div class="nav-section">Списки</div>
+  <a class="nav-item active" href="#list-pnhd">📋 PNHD <span class="nav-count" id="nav-count-pnhd"></span></a>
+  <a class="nav-item" href="#list-studio">🎨 Студия <span class="nav-count" id="nav-count-studio"></span></a>
+  <a class="nav-item" href="#list-tematika">🏷 Тематика <span class="nav-count" id="nav-count-tematika"></span></a>
+  <div class="nav-section">Фильтр</div>
+  <div class="nav-item" onclick="filterTasks('all')">Все задачи</div>
+  <div class="nav-item" onclick="filterTasks('open')">Открытые</div>
+  <div class="nav-item" onclick="filterTasks('done')">Выполненные</div>
+</nav>
+
+<div class="main">
+  <div class="stats-row">
+    <div class="stat"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Всего</div></div>
+    <div class="stat"><div class="stat-value green" id="stat-done">0</div><div class="stat-label">Выполнено</div></div>
+    <div class="stat"><div class="stat-value" id="stat-open">0</div><div class="stat-label">Открытых</div></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="global-progress" style="width:0%"></div></div>
+      <div style="font-size:11px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;" id="progress-label">0% выполнено</div>
+    </div>
+  </div>
+  <div class="topbar">
+    <div class="topbar-title">Задачи проекта</div>
+    <div class="topbar-meta" id="date-display"></div>
+  </div>
+  <div class="content">
+    <div class="list-block" id="list-pnhd">
+      <div class="list-header"><div class="list-title">PNHD</div><div class="list-subtitle">pnhd.ru</div><div class="list-progress" id="progress-pnhd"></div></div>
+      <div id="tasks-pnhd"></div>
+    </div>
+    <div class="list-block" id="list-studio">
+      <div class="list-header"><div class="list-title">Студия</div><div class="list-subtitle">pnhd-studio</div><div class="list-progress" id="progress-studio"></div></div>
+      <div id="tasks-studio"></div>
+    </div>
+    <div class="list-block" id="list-tematika">
+      <div class="list-header"><div class="list-title">Тематика</div><div class="list-subtitle"></div><div class="list-progress" id="progress-tematika"></div></div>
+      <div id="tasks-tematika"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const LISTS = [
+  { id: 'pnhd', tasks: [
+    { id: 'p1', text: 'Перенос сайта с Tilda', note: 'Рассмотреть альтернативные CMS — упрощение интеграций + свобода доработок. Ждать предложений от SEO-подрядчика.', tags: ['waiting'], subtasks: [] },
+    { id: 'p2', text: 'SEO-доработки', note: 'Собрать список необходимых изменений и составить план реализации.', tags: ['seo'], subtasks: [] },
+    { id: 'p3', text: 'План увеличения бюджета на контекст', note: 'Предварительно: аудит всех связок «объявление + посадочная», выявить лучшие.', tags: [], subtasks: [] },
+    { id: 'p4', text: 'Замена SMM-специалиста', note: 'Рассмотреть вариант.', tags: [], subtasks: [] },
+    { id: 'p5', text: 'PR и мероприятия', note: '', tags: [], subtasks: [
+      { id: 'p5-1', text: 'Рассмотреть кандидатуру практикантки от Саши на роль PR-специалиста.' },
+      { id: 'p5-2', text: 'Составить план мероприятий: трек «Студия и продажа»' },
+      { id: 'p5-3', text: 'Составить план мероприятий: трек «Пинхед и лидогенерация»' },
+      { id: 'p5-4', text: 'Закрепить ответственного и запустить реализацию плана.' },
+    ]},
+    { id: 'p6', text: 'Сквозная аналитика', note: '', tags: [], subtasks: [
+      { id: 'p6-1', text: 'Переключить логику создания заявок через Roistat (не параллельно). Ждём Леру — после 19 июня.' },
+      { id: 'p6-2', text: 'Разобраться с падением и фиксацией заявок через мессенджеры.' },
+      { id: 'p6-3', text: 'Проставить подменный номер на альтернативные площадки (Карты, соцсети).' },
+    ]},
+  ]},
+  { id: 'studio', tasks: [
+    { id: 's1', text: 'Перенос CMS', note: 'Рассмотреть вариант переноса от Михаила к разработке. Обсудить с Ильёй.', tags: ['dev'], subtasks: [] },
+    { id: 's2', text: 'Правки по дев-ветке Ильи', note: 'Проект сайта: pnhd-studio-clone.vercel.app', tags: ['dev'], subtasks: [] },
+    { id: 's3', text: 'SEO-доработки Студии', note: 'Дополнить изменениями по проекту. План доработок от SEO-специалистов.', tags: ['seo'], subtasks: [] },
+    { id: 's4', text: 'Починить падение заявок по вебхукам', note: 'Сейчас падает в основную воронку продаж — направить в правильную.', tags: ['urgent'], subtasks: [] },
+    { id: 's5', text: 'Починить каталог', note: 'Верное отображение категорий.', tags: [], subtasks: [] },
+    { id: 's6', text: 'Партия футболок от Студии', note: '', tags: [], subtasks: [
+      { id: 's6-1', text: 'Добавить на сайт возможность заказать футболки из готовых образцов (проработать логику товаров).' },
+      { id: 's6-2', text: 'Запустить товарную рекламу в Директе.' },
+      { id: 's6-3', text: 'Запустить таргетированную рекламу на товары.' },
+    ]},
+    { id: 's7', text: 'Авито', note: 'Пересмотреть все категории товаров. Масштабировать до лидов.', tags: [], subtasks: [] },
+    { id: 's8', text: 'Roistat для Студии', note: 'Рассмотреть подключение к нужному Битриксу и правильным воронкам.', tags: [], subtasks: [] },
+  ]},
+  { id: 'tematika', tasks: [
+    { id: 't1', text: 'Перенос CMS', note: 'Обсудить вариант переноса на идентичную CMS.', tags: ['dev'], subtasks: [] },
+    { id: 't2', text: 'Починить каталог', note: '', tags: [], subtasks: [] },
+    { id: 't3', text: 'Добавить Авито', note: '', tags: [], subtasks: [] },
+    { id: 't4', text: 'Аналитика', note: 'В рамках объединения Битриксов — выстроить идентичную логику сквозной аналитики (как в PNHD/Студии).', tags: [], subtasks: [] },
+  ]},
+];
+
+const TAG_LABELS = { waiting: 'ждём', urgent: 'срочно', dev: 'разработка', seo: 'SEO' };
+
+let state = {};
+function loadState() { try { state = JSON.parse(localStorage.getItem('pnhd_v1') || '{}'); } catch { state = {}; } }
+function saveState() { localStorage.setItem('pnhd_v1', JSON.stringify(state)); }
+function getTask(id) { if (!state[id]) state[id] = { done: false, comments: [] }; return state[id]; }
+
+function toggleDone(id, e) {
+  if (e) e.stopPropagation();
+  const t = getTask(id);
+  t.done = !t.done;
+  saveState(); render(); updateStats();
+}
+
+function addComment(id, text) {
+  if (!text.trim()) return;
+  const t = getTask(id);
+  if (!t.comments) t.comments = [];
+  t.comments.push({ text: text.trim(), date: new Date().toISOString() });
+  saveState(); renderComments(id); updateStats();
+}
+
+function deleteComment(id, idx, e) {
+  if (e) e.stopPropagation();
+  const t = getTask(id);
+  t.comments.splice(idx, 1);
+  saveState(); renderComments(id); updateStats();
+}
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString('ru-RU', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+}
+
+function renderComments(taskId) {
+  const area = document.getElementById('comments-' + taskId);
+  if (!area) return;
+  const t = getTask(taskId);
+  const comments = t.comments || [];
+  let html = '';
+  if (comments.length === 0) {
+    html += '<div class="empty-comments">Нет комментариев</div>';
+  } else {
+    comments.forEach((c, i) => {
+      html += '<div class="comment">' +
+        '<div class="comment-avatar">В</div>' +
+        '<div class="comment-content">' +
+          '<div class="comment-meta">' + formatDate(c.date) + '</div>' +
+          '<div class="comment-text">' + c.text.replace(/</g,'&lt;') + '</div>' +
+        '</div>' +
+        '<button class="comment-delete" onclick="deleteComment(\'' + taskId + '\',' + i + ',event)" title="Удалить">✕</button>' +
+      '</div>';
+    });
+  }
+  html += '<div class="comment-input-row">' +
+    '<textarea class="comment-input" id="cinput-' + taskId + '" placeholder="Добавить комментарий..." rows="1" ' +
+      'onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();submitComment(\'' + taskId + '\');}"></textarea>' +
+    '<button class="comment-submit" onclick="submitComment(\'' + taskId + '\')">Отправить</button>' +
+  '</div>';
+  area.innerHTML = html;
+
+  const badge = document.getElementById('badge-' + taskId);
+  if (badge) badge.textContent = comments.length > 0 ? comments.length + ' коммент.' : '';
+}
+
+function toggleComments(taskId, e) {
+  if (e) e.stopPropagation();
+  const area = document.getElementById('comments-' + taskId);
+  if (!area) return;
+  const isOpen = area.classList.contains('open');
+  area.classList.toggle('open');
+  if (!isOpen) { renderComments(taskId); setTimeout(() => { const inp = document.getElementById('cinput-' + taskId); if (inp) inp.focus(); }, 50); }
+}
+
+function submitComment(taskId) {
+  const inp = document.getElementById('cinput-' + taskId);
+  if (!inp) return;
+  addComment(taskId, inp.value);
+  inp.value = '';
+}
+
+function renderList(listId, tasks) {
+  const container = document.getElementById('tasks-' + listId);
+  if (!container) return;
+  let html = '';
+  tasks.forEach((task, i) => {
+    const t = getTask(task.id);
+    const cc = (t.comments || []).length;
+    const tagHtml = (task.tags || []).map(tag => '<span class="tag ' + tag + '">' + (TAG_LABELS[tag]||tag) + '</span>').join('');
+    html += '<div class="task" id="twrap-' + task.id + '">' +
+      '<div class="task-row">' +
+        '<div class="task-num">' + (i+1) + '.</div>' +
+        '<div class="checkbox ' + (t.done ? 'checked' : '') + '" onclick="toggleDone(\'' + task.id + '\',event)"></div>' +
+        '<div class="task-body">' +
+          '<div class="task-text ' + (t.done ? 'done' : '') + '">' + task.text + '</div>' +
+          (task.note ? '<div class="task-note">' + task.note + '</div>' : '') +
+          (tagHtml ? '<div class="task-tags">' + tagHtml + '</div>' : '') +
+        '</div>' +
+        '<div class="task-actions">' +
+          '<button class="action-btn" onclick="toggleComments(\'' + task.id + '\',event)">💬 <span id="badge-' + task.id + '" class="comment-badge">' + (cc > 0 ? cc + ' коммент.' : '') + '</span></button>' +
+        '</div>' +
+      '</div>';
+
+    if (task.subtasks && task.subtasks.length) {
+      html += '<div class="subtasks">';
+      task.subtasks.forEach(sub => {
+        const st = getTask(sub.id);
+        html += '<div class="subtask" onclick="toggleDone(\'' + sub.id + '\',event)">' +
+          '<div class="checkbox ' + (st.done ? 'checked' : '') + '"></div>' +
+          '<div class="subtask-text ' + (st.done ? 'done' : '') + '">' + sub.text + '</div>' +
+        '</div>';
+      });
+      html += '</div>';
+    }
+
+    html += '<div class="comments-area" id="comments-' + task.id + '"></div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function countDone(tasks) {
+  let done = 0, total = 0;
+  tasks.forEach(t => {
+    total++; if (getTask(t.id).done) done++;
+    (t.subtasks||[]).forEach(s => { total++; if (getTask(s.id).done) done++; });
+  });
+  return { done, total };
+}
+
+function updateProgress() {
+  LISTS.forEach(list => {
+    const { done, total } = countDone(list.tasks);
+    const el = document.getElementById('progress-' + list.id);
+    if (el) el.textContent = done + '/' + total;
+    const nc = document.getElementById('nav-count-' + list.id);
+    if (nc) nc.textContent = total - done;
+  });
+}
+
+function updateStats() {
+  let td = 0, ta = 0;
+  LISTS.forEach(list => { const { done, total } = countDone(list.tasks); td += done; ta += total; });
+  document.getElementById('stat-total').textContent = ta;
+  document.getElementById('stat-done').textContent = td;
+  document.getElementById('stat-open').textContent = ta - td;
+  const pct = ta ? Math.round(td/ta*100) : 0;
+  document.getElementById('global-progress').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% выполнено';
+}
+
+function render() {
+  LISTS.forEach(list => renderList(list.id, list.tasks));
+  updateProgress();
+}
+
+function filterTasks(mode) {
+  LISTS.forEach(list => list.tasks.forEach(task => {
+    const wrap = document.getElementById('twrap-' + task.id);
+    if (!wrap) return;
+    const done = getTask(task.id).done;
+    if (mode === 'done' && !done) wrap.style.display = 'none';
+    else if (mode === 'open' && done) wrap.style.display = 'none';
+    else wrap.style.display = '';
+  }));
+}
+
+document.querySelectorAll('.nav-item[href]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    a.classList.add('active');
+  });
+});
+
+const el = document.getElementById('date-display');
+if (el) el.textContent = new Date().toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' });
+
+loadState();
+render();
+updateStats();
+</script>
+</body>
+</html>
