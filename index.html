@@ -133,6 +133,7 @@
   <a class="nav-item active" href="#list-pnhd">📋 PNHD <span class="nav-count" id="nav-count-pnhd"></span></a>
   <a class="nav-item" href="#list-studio">🎨 Студия <span class="nav-count" id="nav-count-studio"></span></a>
   <a class="nav-item" href="#list-tematika">🏷 Тематика <span class="nav-count" id="nav-count-tematika"></span></a>
+  <a class="nav-item" href="#list-seo">🔍 SEO — pnhd.ru <span class="nav-count" id="nav-count-seo"></span></a>
   <div class="nav-section">Фильтр</div>
   <div class="nav-item" onclick="filterTasks('all')">Все задачи</div>
   <div class="nav-item" onclick="filterTasks('open')">Открытые</div>
@@ -165,6 +166,15 @@
     <div class="list-block" id="list-tematika">
       <div class="list-header"><div class="list-title">Тематика</div><div class="list-subtitle"></div><div class="list-progress" id="progress-tematika"></div></div>
       <div id="tasks-tematika"></div>
+    </div>
+    <div class="list-block" id="list-seo">
+      <div class="list-header">
+        <div class="list-title">SEO — pnhd.ru</div>
+        <div class="list-subtitle">45 задач · июнь 2026</div>
+        <div class="list-progress" id="progress-seo"></div>
+        <a href="https://docs.google.com/spreadsheets/d/1NDTFmQO8iUV685L5dqD5_HNGAWr0_yDSSjJdvI9q6jU/edit?gid=1346052867#gid=1346052867" target="_blank" style="margin-left:12px;font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--accent);text-decoration:none;border:1px solid var(--accent);padding:2px 10px;border-radius:4px;white-space:nowrap;" onmouseover="this.style.background='var(--accent-light)'" onmouseout="this.style.background='transparent'">&#x2197; Таблица</a>
+      </div>
+      <div id="tasks-seo"></div>
     </div>
   </div>
 </div>
@@ -207,6 +217,65 @@ const LISTS = [
     { id: 't2', text: 'Починить каталог', note: '', tags: [], subtasks: [] },
     { id: 't3', text: 'Добавить Авито', note: '', tags: [], subtasks: [] },
     { id: 't4', text: 'Аналитика', note: 'В рамках объединения Битриксов — выстроить идентичную логику сквозной аналитики (как в PNHD/Студии).', tags: [], subtasks: [] },
+  ]},
+  { id: 'seo', tasks: [
+    { id: 'seo-g1', text: 'ГРУППА 1 — Срочные правки в Tilda (~2 часа)', note: 'Изменения title, description и настроек индексирования. Делается в интерфейсе Tilda за один день.', tags: ['urgent'], subtasks: [
+      { id: 'seo-1', text: '⚠ Снять noindex с /nanesenie-logotipov' },
+      { id: 'seo-2', text: '⚠ Проверить и снять noindex на /branding' },
+      { id: 'seo-3', text: '⚠ Проверить noindex на /branding/vishivka/mashinnaya' },
+      { id: 'seo-4', text: 'Title /branding: «брендированная» → «брендирование»' },
+      { id: 'seo-5', text: 'Description /branding: добавить сроки, тираж, клиентов' },
+      { id: 'seo-6', text: 'Title /branding/shelkografiya: добавить «в Санкт-Петербурге»' },
+      { id: 'seo-7', text: 'Title /branding/vishivka/mashinnaya: добавить «в Санкт-Петербурге»' },
+      { id: 'seo-8', text: '⚠ Закрыть /?phpinfo=-1 через robots.txt (разработчик)' },
+      { id: 'seo-9', text: '⚠ Исправить title страниц каталога (брюки/шорты с title «Толстовка»)' },
+      { id: 'seo-10', text: 'Отправить все изменённые страницы на переобход в Вебмастере' },
+    ]},
+    { id: 'seo-g2', text: 'ГРУППА 2 — Оптимизация существующих страниц (~25 часов)', note: 'Улучшение контента, добавление CTA, переработка структуры. Результат через 2-4 недели.', tags: ['seo'], subtasks: [
+      { id: 'seo-11', text: 'Добавить CTA в статью /blog/kak-delayut-shelkografiyu (10 141 показ, CTR 1.17%)' },
+      { id: 'seo-12', text: 'Переориентировать /korporativnyj-merch с «О нас» на коммерческий лендинг' },
+      { id: 'seo-13', text: 'Улучшить сниппет /pechat-na-odezhde/shoppery (1 607 показов, CTR 0.25%)' },
+      { id: 'seo-14', text: 'Улучшить сниппет /pechat-na-odezhde/tolstovki (1 396 показов, CTR 0.57%)' },
+      { id: 'seo-15', text: 'Улучшить сниппет /branding/dtf (1 763 показа, CTR 0.51%)' },
+      { id: 'seo-16', text: 'Создать подстраницы /nanesenie-logotipov/futbolki и /tolstovki' },
+      { id: 'seo-17', text: 'Добавить внутренние ссылки на /proizvodstvo/futbolki с других страниц' },
+      { id: 'seo-18', text: 'Переписать блог под B2B: статьи про корп. мерч и мерч для ивентов' },
+      { id: 'seo-19', text: 'Написать статью «Шелкография — что это» в блог' },
+      { id: 'seo-20', text: 'Превратить /tekstilnyj-brending из статьи в посадочную страницу услуги' },
+    ]},
+    { id: 'seo-g3', text: 'ГРУППА 3 — Новые страницы, высокий приоритет (~8 рабочих дней)', note: 'Создание новых посадочных страниц. Первые позиции через 1-3 месяца после создания.', tags: ['seo'], subtasks: [
+      { id: 'seo-21', text: '/merch-na-zakaz-spb — геолокальный лендинг' },
+      { id: 'seo-22', text: '⚠ /poshiv-korporativnogo-mercha с клиентами ВШЭ/VK/Газпром (334 показа, поз.4)' },
+      { id: 'seo-23', text: '/vishivka-na-odezhde-spb — 327 спросов, конкурент logotipshik.ru' },
+      { id: 'seo-24', text: '/tolstovki-s-logotipom-spb — 94 спроса в СПб' },
+      { id: 'seo-25', text: '/brendirovannaya-odezhda-dlya-sotrudnikov — 120 спросов' },
+      { id: 'seo-26', text: '/shelkografiya-na-futbolkah-spb — 474 спроса' },
+      { id: 'seo-27', text: '/korporativnaya-forma — B2B с высоким чеком' },
+      { id: 'seo-28', text: '/pechat-na-futbolkah — ВЧ транзакционный запрос' },
+    ]},
+    { id: 'seo-g4', text: 'ГРУППА 4 — Новые страницы, средний приоритет (~7 рабочих дней)', note: 'Страницы под запросы с меньшим объёмом или более высокой конкуренцией. Делать после группы 3.', tags: ['seo'], subtasks: [
+      { id: 'seo-29', text: '/tolstovki-s-logotipom (общий ВЧ) — 1 066 спросов' },
+      { id: 'seo-30', text: '/futbolki-s-logotipom-optom — 348 спросов' },
+      { id: 'seo-31', text: '/merch-pod-klyuch — 455 спросов суммарно' },
+      { id: 'seo-32', text: '/poshiv-hudi и /poshiv-svitshoty' },
+      { id: 'seo-33', text: '/merch-dlya-sportivnyh-komand — есть кейс Спартак' },
+      { id: 'seo-34', text: '/pechat-na-tolstovkah' },
+    ]},
+    { id: 'seo-g5', text: 'ГРУППА 5 — Технические задачи (~14 часов, разработчик)', note: 'Задачи для Антона (pinscherweb.ru). Требуют доступа к коду, robots.txt, Roistat API.', tags: ['dev'], subtasks: [
+      { id: 'seo-35', text: '⚠ UTM/source: Tilda → Anton script → Bitrix (attribution gap)' },
+      { id: 'seo-36', text: '⚠ Roistat call tracking: отключить пустой сценарий Direct, включить Base' },
+      { id: 'seo-37', text: '⚠ Закрыть URL с параметрами (?ctime=, ?tst=) от индексации' },
+      { id: 'seo-38', text: '⚠ Добавить Schema.org разметку (LocalBusiness, Service)' },
+      { id: 'seo-39', text: '⚠ Исправить canonical на страницах каталога с параметрами' },
+    ]},
+    { id: 'seo-g6', text: 'ГРУППА 6 — Конкурентный мониторинг (~12 часов)', note: 'Разовые задачи по изучению конкурентов и настройке инструментов.', tags: [], subtasks: [
+      { id: 'seo-40', text: 'Изучить arteprint.ru — лидер СПб по шелкографии, нанесению, толстовкам' },
+      { id: 'seo-41', text: 'Изучить logotipshik.ru/vishivka — лидер по вышивке в СПб' },
+      { id: 'seo-42', text: 'Изучить doneprint.ru — прямой конкурент в СПб' },
+      { id: 'seo-43', text: '⚠ Проверить Avrora Store Fashion вручную (закрыт для парсинга)' },
+      { id: 'seo-44', text: '⚠ Подключить Keys.so — трафик конкурентов и пересечение семантики (нужна подписка)' },
+      { id: 'seo-45', text: 'Обновить таблицу конкурентов через 3 месяца' },
+    ]},
   ]},
 ];
 
