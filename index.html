@@ -8,51 +8,40 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #ffffff;
-    --bg-hover: #f7f7f5;
-    --bg-comment: #fbfaf8;
-    --border: #e8e7e3;
-    --border-light: #f0eeeb;
-    --text: #1a1a18;
-    --text-secondary: #8b8880;
-    --text-muted: #b5b3af;
-    --accent: #2f6b4a;
-    --accent-light: #edf4f0;
-    --tag-bg: #f0eeeb;
-    --done-text: #b5b3af;
-    --radius: 6px;
+    --bg: #ffffff; --bg-hover: #f7f7f5; --bg-comment: #fbfaf8;
+    --border: #e8e7e3; --border-light: #f0eeeb;
+    --text: #1a1a18; --text-secondary: #8b8880; --text-muted: #b5b3af;
+    --accent: #2f6b4a; --accent-light: #edf4f0;
+    --tag-bg: #f0eeeb; --done-text: #b5b3af; --radius: 6px;
+    --danger: #c0392b; --danger-light: #fde8e8;
   }
   body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-  .sidebar {
-    position: fixed; top: 0; left: 0;
-    width: 240px; height: 100vh;
-    background: var(--bg-hover); border-right: 1px solid var(--border);
-    padding: 32px 0; overflow-y: auto; z-index: 10;
-  }
-  .sidebar-logo { padding: 0 20px 24px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+
+  /* SIDEBAR */
+  .sidebar { position: fixed; top: 0; left: 0; width: 240px; height: 100vh; background: var(--bg-hover); border-right: 1px solid var(--border); padding: 0; overflow-y: auto; z-index: 10; display: flex; flex-direction: column; }
+  .sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid var(--border); }
   .sidebar-logo span { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; letter-spacing: 0.12em; color: var(--text); text-transform: uppercase; }
   .sidebar-logo small { display: block; font-size: 11px; color: var(--text-muted); margin-top: 3px; }
-  .nav-item {
-    display: flex; align-items: center; gap: 8px;
-    padding: 6px 20px; font-size: 13.5px; color: var(--text-secondary);
-    cursor: pointer; transition: background 0.12s, color 0.12s;
-    text-decoration: none; position: relative;
-  }
+  .nav-section { padding: 16px 20px 6px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+  .nav-lists { flex: 1; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 6px 20px; font-size: 13.5px; color: var(--text-secondary); cursor: pointer; transition: background 0.12s, color 0.12s; text-decoration: none; position: relative; user-select: none; }
   .nav-item:hover { background: var(--border-light); color: var(--text); }
+  .nav-item:hover .nav-delete { opacity: 1; }
   .nav-item.active { background: var(--border); color: var(--text); font-weight: 500; }
   .nav-item.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); border-radius: 0 2px 2px 0; }
-  .nav-count { margin-left: auto; font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); background: var(--border); padding: 1px 6px; border-radius: 10px; }
-  .nav-section { padding: 20px 20px 6px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+  .nav-count { margin-left: auto; font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); background: var(--border); padding: 1px 6px; border-radius: 10px; min-width: 20px; text-align: center; }
+  .nav-delete { opacity: 0; transition: opacity 0.1s; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; padding: 0 2px; margin-left: 4px; line-height: 1; }
+  .nav-delete:hover { color: var(--danger); }
+  .nav-add-list { display: flex; align-items: center; gap: 6px; padding: 8px 20px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: color 0.12s; border-top: 1px solid var(--border-light); margin-top: 4px; }
+  .nav-add-list:hover { color: var(--accent); }
+  .nav-bottom { border-top: 1px solid var(--border); padding: 8px 0; }
+  .nav-filter-item { display: flex; align-items: center; gap: 8px; padding: 5px 20px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: background 0.1s, color 0.1s; }
+  .nav-filter-item:hover { background: var(--border-light); color: var(--text); }
+  .nav-filter-item.active-filter { color: var(--accent); font-weight: 500; }
+
+  /* MAIN */
   .main { margin-left: 240px; min-height: 100vh; }
-  .topbar {
-    position: sticky; top: 0;
-    background: rgba(255,255,255,0.92); backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 48px; display: flex; align-items: center; justify-content: space-between; z-index: 5;
-  }
-  .topbar-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 500; }
-  .topbar-meta { font-size: 12px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
-  .stats-row { display: flex; gap: 24px; padding: 20px 48px; border-bottom: 1px solid var(--border); background: var(--bg-hover); }
+  .stats-row { display: flex; gap: 24px; padding: 16px 48px; border-bottom: 1px solid var(--border); background: var(--bg-hover); }
   .stat { display: flex; flex-direction: column; gap: 2px; }
   .stat-value { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 500; }
   .stat-value.green { color: var(--accent); }
@@ -60,36 +49,48 @@
   .progress-bar-wrap { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
   .progress-bar-track { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
   .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
+  .topbar { position: sticky; top: 0; background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 14px 48px; display: flex; align-items: center; justify-content: space-between; z-index: 5; }
+  .topbar-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 500; }
+  .topbar-meta { font-size: 12px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
   .content { padding: 40px 48px 80px; max-width: 820px; }
+
+  /* LIST BLOCK */
   .list-block { margin-bottom: 48px; }
-  .list-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .list-header { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
   .list-title { font-family: 'Lora', serif; font-size: 22px; font-weight: 500; }
   .list-subtitle { font-size: 12px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
-  .list-progress { margin-left: auto; font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); }
+  .list-progress { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); }
+  .list-header-spacer { flex: 1; }
+  .list-link-btn { font-size: 12px; font-family: 'IBM Plex Mono', monospace; color: var(--accent); text-decoration: none; border: 1px solid var(--accent); padding: 2px 10px; border-radius: 4px; white-space: nowrap; transition: background 0.1s; }
+  .list-link-btn:hover { background: var(--accent-light); }
+  .list-delete-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; padding: 3px 6px; border-radius: 4px; transition: color 0.1s, background 0.1s; }
+  .list-delete-btn:hover { color: var(--danger); background: var(--danger-light); }
+
+  /* ADD TASK ROW */
+  .add-task-row { display: flex; align-items: center; gap: 8px; padding: 8px 8px; border-radius: var(--radius); margin-top: 4px; }
+  .add-task-input { flex: 1; border: none; border-bottom: 1px solid var(--border); padding: 5px 0; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: transparent; outline: none; transition: border-color 0.15s; }
+  .add-task-input:focus { border-color: var(--accent); }
+  .add-task-input::placeholder { color: var(--text-muted); }
+  .add-task-btn { background: var(--accent); color: white; border: none; border-radius: var(--radius); padding: 5px 12px; font-size: 12px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; }
+  .add-task-btn:hover { opacity: 0.85; }
+  .add-task-trigger { display: flex; align-items: center; gap: 6px; padding: 7px 8px; font-size: 13px; color: var(--text-muted); cursor: pointer; border-radius: var(--radius); transition: color 0.1s, background 0.1s; margin-top: 2px; }
+  .add-task-trigger:hover { color: var(--accent); background: var(--accent-light); }
+
+  /* TASK */
   .task { border-bottom: 1px solid var(--border-light); }
   .task-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 8px; border-radius: var(--radius); transition: background 0.1s; position: relative; }
   .task-row:hover { background: var(--bg-hover); }
   .task-row:hover .task-actions { opacity: 1; }
-  .checkbox {
-    width: 16px; height: 16px; min-width: 16px;
-    border: 1.5px solid var(--border); border-radius: 3px; margin-top: 2px;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s; background: var(--bg); cursor: pointer;
-  }
+  .checkbox { width: 16px; height: 16px; min-width: 16px; border: 1.5px solid var(--border); border-radius: 3px; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: var(--bg); cursor: pointer; }
   .checkbox:hover { border-color: var(--accent); }
   .checkbox.checked { background: var(--accent); border-color: var(--accent); }
   .checkbox.checked::after { content: ''; width: 9px; height: 5px; border-left: 1.5px solid white; border-bottom: 1.5px solid white; transform: rotate(-45deg) translateY(-1px); display: block; }
   .task-body { flex: 1; min-width: 0; }
-  .task-text { font-size: 14px; line-height: 1.5; color: var(--text); transition: color 0.15s; user-select: none; }
+  .task-text { font-size: 14px; line-height: 1.5; color: var(--text); transition: color 0.15s; }
   .task-text.done { color: var(--done-text); text-decoration: line-through; }
+  .task-text[contenteditable="true"] { outline: none; border-bottom: 1px solid var(--accent); }
   .task-note { font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
   .task-num { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); min-width: 20px; margin-top: 3px; user-select: none; }
-  .subtasks { margin-left: 46px; margin-bottom: 2px; }
-  .subtask { display: flex; align-items: flex-start; gap: 8px; padding: 5px 8px; border-radius: var(--radius); cursor: pointer; transition: background 0.1s; }
-  .subtask:hover { background: var(--bg-hover); }
-  .subtask .checkbox { width: 13px; height: 13px; min-width: 13px; border-radius: 50%; margin-top: 3px; }
-  .subtask-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; user-select: none; }
-  .subtask-text.done { color: var(--done-text); text-decoration: line-through; }
   .task-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
   .tag { font-size: 11px; font-family: 'IBM Plex Mono', monospace; padding: 1px 7px; border-radius: 3px; background: var(--tag-bg); color: var(--text-muted); }
   .tag.waiting { background: #fef3e2; color: #b07b2a; }
@@ -97,9 +98,27 @@
   .tag.dev { background: #e8f0fe; color: #3b5bdb; }
   .tag.seo { background: #e8f4f0; color: #2f6b4a; }
   .task-actions { opacity: 0; transition: opacity 0.1s; display: flex; align-items: center; gap: 2px; margin-top: 2px; }
-  .action-btn { background: none; border: none; cursor: pointer; padding: 3px 8px; border-radius: 4px; font-size: 12px; color: var(--text-muted); transition: background 0.1s, color 0.1s; white-space: nowrap; font-family: 'IBM Plex Sans', sans-serif; }
+  .action-btn { background: none; border: none; cursor: pointer; padding: 3px 7px; border-radius: 4px; font-size: 12px; color: var(--text-muted); transition: background 0.1s, color 0.1s; white-space: nowrap; font-family: 'IBM Plex Sans', sans-serif; }
   .action-btn:hover { background: var(--border); color: var(--text); }
+  .action-btn.danger:hover { background: var(--danger-light); color: var(--danger); }
   .comment-badge { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); }
+
+  /* SUBTASKS */
+  .subtasks { margin-left: 46px; margin-bottom: 2px; }
+  .subtask { display: flex; align-items: flex-start; gap: 8px; padding: 5px 8px; border-radius: var(--radius); cursor: pointer; transition: background 0.1s; }
+  .subtask:hover { background: var(--bg-hover); }
+  .subtask:hover .subtask-del { opacity: 1; }
+  .subtask .checkbox { width: 13px; height: 13px; min-width: 13px; border-radius: 50%; margin-top: 3px; }
+  .subtask-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; flex: 1; }
+  .subtask-text.done { color: var(--done-text); text-decoration: line-through; }
+  .subtask-del { opacity: 0; transition: opacity 0.1s; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 12px; padding: 1px 4px; }
+  .subtask-del:hover { color: var(--danger); }
+  .add-subtask-row { display: flex; align-items: center; gap: 6px; padding: 4px 8px; margin-left: 21px; }
+  .add-subtask-input { flex: 1; border: none; border-bottom: 1px dashed var(--border); padding: 3px 0; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: transparent; outline: none; }
+  .add-subtask-input:focus { border-color: var(--accent); }
+  .add-subtask-input::placeholder { color: var(--text-muted); }
+
+  /* COMMENTS */
   .comments-area { margin-left: 46px; margin-bottom: 8px; display: none; }
   .comments-area.open { display: block; }
   .comment { display: flex; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border-light); }
@@ -109,7 +128,7 @@
   .comment-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
   .comment-delete { background: none; border: none; cursor: pointer; font-size: 11px; color: var(--text-muted); padding: 2px 4px; border-radius: 3px; margin-left: auto; opacity: 0; transition: opacity 0.1s; }
   .comment:hover .comment-delete { opacity: 1; }
-  .comment-delete:hover { color: #c0392b; background: #fde8e8; }
+  .comment-delete:hover { color: var(--danger); background: var(--danger-light); }
   .comment-input-row { display: flex; gap: 8px; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--border-light); }
   .comment-input { flex: 1; border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 10px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: var(--bg-comment); outline: none; transition: border-color 0.15s; resize: none; min-height: 36px; }
   .comment-input:focus { border-color: var(--accent); background: var(--bg); }
@@ -117,6 +136,23 @@
   .comment-submit { background: var(--accent); color: white; border: none; border-radius: var(--radius); padding: 7px 14px; font-size: 12px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; cursor: pointer; transition: opacity 0.15s; align-self: flex-end; }
   .comment-submit:hover { opacity: 0.85; }
   .empty-comments { padding: 10px 0 6px; font-size: 12px; color: var(--text-muted); font-style: italic; }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--bg); border-radius: 10px; padding: 28px 32px; width: 420px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.12); transform: translateY(8px); transition: transform 0.15s; }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 500; margin-bottom: 20px; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; margin-bottom: 6px; display: block; }
+  .modal-input { width: 100%; border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: var(--bg); outline: none; transition: border-color 0.15s; }
+  .modal-input:focus { border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .btn-cancel { background: none; border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 16px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text-muted); cursor: pointer; transition: background 0.1s; }
+  .btn-cancel:hover { background: var(--bg-hover); }
+  .btn-primary { background: var(--accent); color: white; border: none; border-radius: var(--radius); padding: 7px 16px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+  .btn-primary:hover { opacity: 0.85; }
+
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -124,20 +160,45 @@
 </head>
 <body>
 
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Новый список</div>
+    <div class="modal-field">
+      <label class="modal-label" for="modal-name">Название</label>
+      <input class="modal-input" id="modal-name" type="text" placeholder="Например: Маркетинг" autocomplete="off" onkeydown="if(event.key==='Enter')confirmModal()">
+    </div>
+    <div class="modal-field" id="modal-subtitle-field">
+      <label class="modal-label" for="modal-subtitle">Подпись (необязательно)</label>
+      <input class="modal-input" id="modal-subtitle" type="text" placeholder="Например: сайт или команда" autocomplete="off" onkeydown="if(event.key==='Enter')confirmModal()">
+    </div>
+    <div class="modal-field" id="modal-link-field" style="display:none">
+      <label class="modal-label" for="modal-link">Ссылка (необязательно)</label>
+      <input class="modal-input" id="modal-link" type="text" placeholder="https://..." autocomplete="off" onkeydown="if(event.key==='Enter')confirmModal()">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+      <button class="btn-primary" onclick="confirmModal()">Создать</button>
+    </div>
+  </div>
+</div>
+
 <nav class="sidebar">
   <div class="sidebar-logo">
     <span>PNHD</span>
     <small>Управление задачами</small>
   </div>
   <div class="nav-section">Списки</div>
-  <a class="nav-item active" href="#list-pnhd">📋 PNHD <span class="nav-count" id="nav-count-pnhd"></span></a>
-  <a class="nav-item" href="#list-studio">🎨 Студия <span class="nav-count" id="nav-count-studio"></span></a>
-  <a class="nav-item" href="#list-tematika">🏷 Тематика <span class="nav-count" id="nav-count-tematika"></span></a>
-  <a class="nav-item" href="#list-seo">🔍 SEO — pnhd.ru <span class="nav-count" id="nav-count-seo"></span></a>
-  <div class="nav-section">Фильтр</div>
-  <div class="nav-item" onclick="filterTasks('all')">Все задачи</div>
-  <div class="nav-item" onclick="filterTasks('open')">Открытые</div>
-  <div class="nav-item" onclick="filterTasks('done')">Выполненные</div>
+  <div class="nav-lists" id="nav-lists"></div>
+  <div class="nav-add-list" onclick="openNewListModal()">
+    <span style="font-size:16px;line-height:1">+</span> Новый список
+  </div>
+  <div class="nav-bottom">
+    <div class="nav-section" style="padding-top:8px">Фильтр</div>
+    <div class="nav-filter-item active-filter" id="filter-all" onclick="setFilter('all')">Все задачи</div>
+    <div class="nav-filter-item" id="filter-open" onclick="setFilter('open')">Открытые</div>
+    <div class="nav-filter-item" id="filter-done" onclick="setFilter('done')">Выполненные</div>
+  </div>
 </nav>
 
 <div class="main">
@@ -154,34 +215,13 @@
     <div class="topbar-title">Задачи проекта</div>
     <div class="topbar-meta" id="date-display"></div>
   </div>
-  <div class="content">
-    <div class="list-block" id="list-pnhd">
-      <div class="list-header"><div class="list-title">PNHD</div><div class="list-subtitle">pnhd.ru</div><div class="list-progress" id="progress-pnhd"></div></div>
-      <div id="tasks-pnhd"></div>
-    </div>
-    <div class="list-block" id="list-studio">
-      <div class="list-header"><div class="list-title">Студия</div><div class="list-subtitle">pnhd-studio</div><div class="list-progress" id="progress-studio"></div></div>
-      <div id="tasks-studio"></div>
-    </div>
-    <div class="list-block" id="list-tematika">
-      <div class="list-header"><div class="list-title">Тематика</div><div class="list-subtitle"></div><div class="list-progress" id="progress-tematika"></div></div>
-      <div id="tasks-tematika"></div>
-    </div>
-    <div class="list-block" id="list-seo">
-      <div class="list-header">
-        <div class="list-title">SEO — pnhd.ru</div>
-        <div class="list-subtitle">45 задач · июнь 2026</div>
-        <div class="list-progress" id="progress-seo"></div>
-        <a href="https://docs.google.com/spreadsheets/d/1NDTFmQO8iUV685L5dqD5_HNGAWr0_yDSSjJdvI9q6jU/edit?gid=1346052867#gid=1346052867" target="_blank" style="margin-left:12px;font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--accent);text-decoration:none;border:1px solid var(--accent);padding:2px 10px;border-radius:4px;white-space:nowrap;" onmouseover="this.style.background='var(--accent-light)'" onmouseout="this.style.background='transparent'">&#x2197; Таблица</a>
-      </div>
-      <div id="tasks-seo"></div>
-    </div>
-  </div>
+  <div class="content" id="content"></div>
 </div>
 
 <script>
-const LISTS = [
-  { id: 'pnhd', tasks: [
+// ─── STATIC DATA (встроенные списки) ─────────────────────────────────────────
+const STATIC_LISTS = [
+  { id: 'pnhd', title: 'PNHD', subtitle: 'pnhd.ru', link: null, tasks: [
     { id: 'p1', text: 'Перенос сайта с Tilda', note: 'Рассмотреть альтернативные CMS — упрощение интеграций + свобода доработок. Ждать предложений от SEO-подрядчика.', tags: ['waiting'], subtasks: [] },
     { id: 'p2', text: 'SEO-доработки', note: 'Собрать список необходимых изменений и составить план реализации.', tags: ['seo'], subtasks: [] },
     { id: 'p3', text: 'План увеличения бюджета на контекст', note: 'Предварительно: аудит всех связок «объявление + посадочная», выявить лучшие.', tags: [], subtasks: [] },
@@ -198,7 +238,7 @@ const LISTS = [
       { id: 'p6-3', text: 'Проставить подменный номер на альтернативные площадки (Карты, соцсети).' },
     ]},
   ]},
-  { id: 'studio', tasks: [
+  { id: 'studio', title: 'Студия', subtitle: 'pnhd-studio', link: null, tasks: [
     { id: 's1', text: 'Перенос CMS', note: 'Рассмотреть вариант переноса от Михаила к разработке. Обсудить с Ильёй.', tags: ['dev'], subtasks: [] },
     { id: 's2', text: 'Правки по дев-ветке Ильи', note: 'Проект сайта: pnhd-studio-clone.vercel.app', tags: ['dev'], subtasks: [] },
     { id: 's3', text: 'SEO-доработки Студии', note: 'Дополнить изменениями по проекту. План доработок от SEO-специалистов.', tags: ['seo'], subtasks: [] },
@@ -212,13 +252,13 @@ const LISTS = [
     { id: 's7', text: 'Авито', note: 'Пересмотреть все категории товаров. Масштабировать до лидов.', tags: [], subtasks: [] },
     { id: 's8', text: 'Roistat для Студии', note: 'Рассмотреть подключение к нужному Битриксу и правильным воронкам.', tags: [], subtasks: [] },
   ]},
-  { id: 'tematika', tasks: [
+  { id: 'tematika', title: 'Тематика', subtitle: '', link: null, tasks: [
     { id: 't1', text: 'Перенос CMS', note: 'Обсудить вариант переноса на идентичную CMS.', tags: ['dev'], subtasks: [] },
     { id: 't2', text: 'Починить каталог', note: '', tags: [], subtasks: [] },
     { id: 't3', text: 'Добавить Авито', note: '', tags: [], subtasks: [] },
     { id: 't4', text: 'Аналитика', note: 'В рамках объединения Битриксов — выстроить идентичную логику сквозной аналитики (как в PNHD/Студии).', tags: [], subtasks: [] },
   ]},
-  { id: 'seo', tasks: [
+  { id: 'seo', title: 'SEO — pnhd.ru', subtitle: '45 задач · июнь 2026', link: 'https://docs.google.com/spreadsheets/d/1NDTFmQO8iUV685L5dqD5_HNGAWr0_yDSSjJdvI9q6jU/edit?gid=1346052867#gid=1346052867', tasks: [
     { id: 'seo-g1', text: 'ГРУППА 1 — Срочные правки в Tilda (~2 часа)', note: 'Изменения title, description и настроек индексирования. Делается в интерфейсе Tilda за один день.', tags: ['urgent'], subtasks: [
       { id: 'seo-1', text: '⚠ Снять noindex с /nanesenie-logotipov' },
       { id: 'seo-2', text: '⚠ Проверить и снять noindex на /branding' },
@@ -281,184 +321,318 @@ const LISTS = [
 
 const TAG_LABELS = { waiting: 'ждём', urgent: 'срочно', dev: 'разработка', seo: 'SEO' };
 
-let state = {};
-function loadState() { try { state = JSON.parse(localStorage.getItem('pnhd_v1') || '{}'); } catch { state = {}; } }
-function saveState() { localStorage.setItem('pnhd_v1', JSON.stringify(state)); }
-function getTask(id) { if (!state[id]) state[id] = { done: false, comments: [] }; return state[id]; }
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let checkState = {};   // { [taskId]: { done, comments } }
+let customLists = [];  // доп. списки созданные пользователем
+let currentFilter = 'all';
+let modalCallback = null;
 
+function loadState() {
+  try { checkState = JSON.parse(localStorage.getItem('pnhd_checks') || '{}'); } catch { checkState = {}; }
+  try { customLists = JSON.parse(localStorage.getItem('pnhd_lists') || '[]'); } catch { customLists = []; }
+}
+function saveChecks() { localStorage.setItem('pnhd_checks', JSON.stringify(checkState)); }
+function saveLists() { localStorage.setItem('pnhd_lists', JSON.stringify(customLists)); }
+function getCheck(id) { if (!checkState[id]) checkState[id] = { done: false, comments: [] }; return checkState[id]; }
+
+function allLists() { return [...STATIC_LISTS, ...customLists]; }
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function openNewListModal() {
+  document.getElementById('modal-title').textContent = 'Новый список';
+  document.getElementById('modal-subtitle-field').style.display = '';
+  document.getElementById('modal-link-field').style.display = '';
+  document.getElementById('modal-name').value = '';
+  document.getElementById('modal-subtitle').value = '';
+  document.getElementById('modal-link').value = '';
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('modal-name').focus(), 50);
+  modalCallback = (name, subtitle, link) => {
+    if (!name.trim()) return;
+    const id = 'custom-' + Date.now();
+    customLists.push({ id, title: name.trim(), subtitle: subtitle.trim(), link: link.trim() || null, tasks: [] });
+    saveLists();
+    renderAll();
+    scrollToList(id);
+  };
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay')) return;
+  document.getElementById('modal-overlay').classList.remove('open');
+  modalCallback = null;
+}
+
+function confirmModal() {
+  if (!modalCallback) return;
+  const name = document.getElementById('modal-name').value;
+  const subtitle = document.getElementById('modal-subtitle').value;
+  const link = document.getElementById('modal-link').value;
+  modalCallback(name, subtitle, link);
+  document.getElementById('modal-overlay').classList.remove('open');
+  modalCallback = null;
+}
+
+// ─── TASK CRUD ────────────────────────────────────────────────────────────────
 function toggleDone(id, e) {
   if (e) e.stopPropagation();
-  const t = getTask(id);
+  const t = getCheck(id);
   t.done = !t.done;
-  saveState(); render(); updateStats();
+  saveChecks(); renderAll(); updateStats();
 }
 
+function addTaskToList(listId) {
+  const inp = document.getElementById('newtask-' + listId);
+  if (!inp || !inp.value.trim()) return;
+  const text = inp.value.trim();
+  inp.value = '';
+  const list = allLists().find(l => l.id === listId);
+  if (!list) return;
+  const taskId = listId + '-t' + Date.now();
+  list.tasks.push({ id: taskId, text, note: '', tags: [], subtasks: [] });
+  if (!STATIC_LISTS.find(l => l.id === listId)) saveLists();
+  renderAll(); updateStats();
+  inp.focus();
+}
+
+function deleteTask(listId, taskId, e) {
+  if (e) e.stopPropagation();
+  const list = allLists().find(l => l.id === listId);
+  if (!list) return;
+  list.tasks = list.tasks.filter(t => t.id !== taskId);
+  if (!STATIC_LISTS.find(l => l.id === listId)) saveLists();
+  renderAll(); updateStats();
+}
+
+function deleteList(listId, e) {
+  if (e) e.stopPropagation();
+  if (!confirm('Удалить список?')) return;
+  customLists = customLists.filter(l => l.id !== listId);
+  saveLists(); renderAll(); updateStats();
+}
+
+function addSubtask(taskId, listId, e) {
+  if (e && e.key !== 'Enter') return;
+  const inp = document.getElementById('newsub-' + taskId);
+  if (!inp || !inp.value.trim()) return;
+  const text = inp.value.trim();
+  inp.value = '';
+  const list = allLists().find(l => l.id === listId);
+  if (!list) return;
+  const task = list.tasks.find(t => t.id === taskId);
+  if (!task) return;
+  const subId = taskId + '-s' + Date.now();
+  task.subtasks.push({ id: subId, text });
+  if (!STATIC_LISTS.find(l => l.id === listId)) saveLists();
+  renderAll(); updateStats();
+  setTimeout(() => { const ni = document.getElementById('newsub-' + taskId); if (ni) ni.focus(); }, 10);
+}
+
+function deleteSubtask(taskId, subId, listId, e) {
+  if (e) e.stopPropagation();
+  const list = allLists().find(l => l.id === listId);
+  if (!list) return;
+  const task = list.tasks.find(t => t.id === taskId);
+  if (!task) return;
+  task.subtasks = task.subtasks.filter(s => s.id !== subId);
+  if (!STATIC_LISTS.find(l => l.id === listId)) saveLists();
+  renderAll(); updateStats();
+}
+
+// ─── COMMENTS ─────────────────────────────────────────────────────────────────
 function addComment(id, text) {
   if (!text.trim()) return;
-  const t = getTask(id);
+  const t = getCheck(id);
   if (!t.comments) t.comments = [];
   t.comments.push({ text: text.trim(), date: new Date().toISOString() });
-  saveState(); renderComments(id); updateStats();
+  saveChecks(); renderComments(id); updateStats();
 }
-
 function deleteComment(id, idx, e) {
   if (e) e.stopPropagation();
-  const t = getTask(id);
+  const t = getCheck(id);
   t.comments.splice(idx, 1);
-  saveState(); renderComments(id); updateStats();
+  saveChecks(); renderComments(id); updateStats();
 }
-
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString('ru-RU', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
 }
-
 function renderComments(taskId) {
   const area = document.getElementById('comments-' + taskId);
   if (!area) return;
-  const t = getTask(taskId);
+  const t = getCheck(taskId);
   const comments = t.comments || [];
   let html = '';
-  if (comments.length === 0) {
-    html += '<div class="empty-comments">Нет комментариев</div>';
-  } else {
-    comments.forEach((c, i) => {
-      html += '<div class="comment">' +
-        '<div class="comment-avatar">В</div>' +
-        '<div class="comment-content">' +
-          '<div class="comment-meta">' + formatDate(c.date) + '</div>' +
-          '<div class="comment-text">' + c.text.replace(/</g,'&lt;') + '</div>' +
-        '</div>' +
-        '<button class="comment-delete" onclick="deleteComment(\'' + taskId + '\',' + i + ',event)" title="Удалить">✕</button>' +
-      '</div>';
-    });
-  }
-  html += '<div class="comment-input-row">' +
-    '<textarea class="comment-input" id="cinput-' + taskId + '" placeholder="Добавить комментарий..." rows="1" ' +
-      'onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();submitComment(\'' + taskId + '\');}"></textarea>' +
-    '<button class="comment-submit" onclick="submitComment(\'' + taskId + '\')">Отправить</button>' +
-  '</div>';
+  if (!comments.length) html += '<div class="empty-comments">Нет комментариев</div>';
+  else comments.forEach((c, i) => {
+    html += '<div class="comment"><div class="comment-avatar">В</div><div class="comment-content"><div class="comment-meta">' + formatDate(c.date) + '</div><div class="comment-text">' + c.text.replace(/</g,'&lt;') + '</div></div><button class="comment-delete" onclick="deleteComment(\'' + taskId + '\',' + i + ',event)">✕</button></div>';
+  });
+  html += '<div class="comment-input-row"><textarea class="comment-input" id="cinput-' + taskId + '" placeholder="Добавить комментарий..." rows="1" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();submitComment(\'' + taskId + '\');}"></textarea><button class="comment-submit" onclick="submitComment(\'' + taskId + '\')">Отправить</button></div>';
   area.innerHTML = html;
-
   const badge = document.getElementById('badge-' + taskId);
   if (badge) badge.textContent = comments.length > 0 ? comments.length + ' коммент.' : '';
 }
-
 function toggleComments(taskId, e) {
   if (e) e.stopPropagation();
   const area = document.getElementById('comments-' + taskId);
   if (!area) return;
-  const isOpen = area.classList.contains('open');
   area.classList.toggle('open');
-  if (!isOpen) { renderComments(taskId); setTimeout(() => { const inp = document.getElementById('cinput-' + taskId); if (inp) inp.focus(); }, 50); }
+  if (area.classList.contains('open')) { renderComments(taskId); setTimeout(() => { const i = document.getElementById('cinput-' + taskId); if(i) i.focus(); }, 50); }
 }
-
 function submitComment(taskId) {
   const inp = document.getElementById('cinput-' + taskId);
   if (!inp) return;
-  addComment(taskId, inp.value);
-  inp.value = '';
+  addComment(taskId, inp.value); inp.value = '';
 }
 
-function renderList(listId, tasks) {
-  const container = document.getElementById('tasks-' + listId);
-  if (!container) return;
-  let html = '';
-  tasks.forEach((task, i) => {
-    const t = getTask(task.id);
-    const cc = (t.comments || []).length;
-    const tagHtml = (task.tags || []).map(tag => '<span class="tag ' + tag + '">' + (TAG_LABELS[tag]||tag) + '</span>').join('');
-    html += '<div class="task" id="twrap-' + task.id + '">' +
-      '<div class="task-row">' +
-        '<div class="task-num">' + (i+1) + '.</div>' +
-        '<div class="checkbox ' + (t.done ? 'checked' : '') + '" onclick="toggleDone(\'' + task.id + '\',event)"></div>' +
-        '<div class="task-body">' +
-          '<div class="task-text ' + (t.done ? 'done' : '') + '">' + task.text + '</div>' +
-          (task.note ? '<div class="task-note">' + task.note + '</div>' : '') +
-          (tagHtml ? '<div class="task-tags">' + tagHtml + '</div>' : '') +
-        '</div>' +
-        '<div class="task-actions">' +
-          '<button class="action-btn" onclick="toggleComments(\'' + task.id + '\',event)">💬 <span id="badge-' + task.id + '" class="comment-badge">' + (cc > 0 ? cc + ' коммент.' : '') + '</span></button>' +
-        '</div>' +
-      '</div>';
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function renderTask(task, i, listId) {
+  const t = getCheck(task.id);
+  const cc = (t.comments || []).length;
+  const tagHtml = (task.tags || []).map(tag => '<span class="tag ' + tag + '">' + (TAG_LABELS[tag]||tag) + '</span>').join('');
+  const hide = (currentFilter === 'done' && !t.done) || (currentFilter === 'open' && t.done) ? 'style="display:none"' : '';
 
-    if (task.subtasks && task.subtasks.length) {
-      html += '<div class="subtasks">';
-      task.subtasks.forEach(sub => {
-        const st = getTask(sub.id);
-        html += '<div class="subtask" onclick="toggleDone(\'' + sub.id + '\',event)">' +
-          '<div class="checkbox ' + (st.done ? 'checked' : '') + '"></div>' +
-          '<div class="subtask-text ' + (st.done ? 'done' : '') + '">' + sub.text + '</div>' +
-        '</div>';
-      });
-      html += '</div>';
-    }
+  let html = '<div class="task" id="twrap-' + task.id + '" ' + hide + '>';
+  html += '<div class="task-row">';
+  html += '<div class="task-num">' + (i+1) + '.</div>';
+  html += '<div class="checkbox ' + (t.done?'checked':'') + '" onclick="toggleDone(\'' + task.id + '\',event)"></div>';
+  html += '<div class="task-body">';
+  html += '<div class="task-text ' + (t.done?'done':'') + '">' + esc(task.text) + '</div>';
+  if (task.note) html += '<div class="task-note">' + esc(task.note) + '</div>';
+  if (tagHtml) html += '<div class="task-tags">' + tagHtml + '</div>';
+  html += '</div>';
+  html += '<div class="task-actions">';
+  html += '<button class="action-btn" onclick="toggleComments(\'' + task.id + '\',event)">💬 <span id="badge-' + task.id + '" class="comment-badge">' + (cc>0?cc+' коммент.':'') + '</span></button>';
+  html += '<button class="action-btn danger" onclick="deleteTask(\'' + listId + '\',\'' + task.id + '\',event)">Удалить</button>';
+  html += '</div></div>';
 
-    html += '<div class="comments-area" id="comments-' + task.id + '"></div></div>';
+  // Subtasks
+  if (task.subtasks && task.subtasks.length) {
+    html += '<div class="subtasks">';
+    task.subtasks.forEach(sub => {
+      const st = getCheck(sub.id);
+      html += '<div class="subtask"><div class="checkbox ' + (st.done?'checked':'') + '" onclick="toggleDone(\'' + sub.id + '\',event)"></div><div class="subtask-text ' + (st.done?'done':'') + '" onclick="toggleDone(\'' + sub.id + '\',event)">' + esc(sub.text) + '</div><button class="subtask-del" onclick="deleteSubtask(\'' + task.id + '\',\'' + sub.id + '\',\'' + listId + '\',event)">✕</button></div>';
+    });
+    html += '</div>';
+  }
+  // Add subtask input
+  html += '<div class="subtasks"><div class="add-subtask-row"><input class="add-subtask-input" id="newsub-' + task.id + '" placeholder="+ подзадача" onkeydown="addSubtask(\'' + task.id + '\',\'' + listId + '\',event)"></div></div>';
+
+  // Comments
+  html += '<div class="comments-area" id="comments-' + task.id + '"></div>';
+  html += '</div>';
+  return html;
+}
+
+function renderListBlock(list) {
+  let html = '<div class="list-block" id="list-' + list.id + '">';
+  html += '<div class="list-header">';
+  html += '<div class="list-title">' + esc(list.title) + '</div>';
+  if (list.subtitle) html += '<div class="list-subtitle">' + esc(list.subtitle) + '</div>';
+  const { done, total } = countDone(list.tasks);
+  html += '<div class="list-progress" id="progress-' + list.id + '">' + done + '/' + total + '</div>';
+  html += '<div class="list-header-spacer"></div>';
+  if (list.link) html += '<a class="list-link-btn" href="' + list.link + '" target="_blank">&#x2197; Таблица</a>';
+  if (customLists.find(l => l.id === list.id)) html += '<button class="list-delete-btn" onclick="deleteList(\'' + list.id + '\',event)" title="Удалить список">✕</button>';
+  html += '</div>';
+
+  // Tasks
+  list.tasks.forEach((task, i) => { html += renderTask(task, i, list.id); });
+
+  // Add task row
+  html += '<div class="add-task-row"><input class="add-task-input" id="newtask-' + list.id + '" placeholder="Добавить задачу..." onkeydown="if(event.key===\'Enter\')addTaskToList(\'' + list.id + '\')"><button class="add-task-btn" onclick="addTaskToList(\'' + list.id + '\')">+ Задача</button></div>';
+  html += '</div>';
+  return html;
+}
+
+function renderNav() {
+  const nav = document.getElementById('nav-lists');
+  const lists = allLists();
+  nav.innerHTML = lists.map(list => {
+    const { done, total } = countDone(list.tasks);
+    const open = total - done;
+    const isCustom = !!customLists.find(l => l.id === list.id);
+    const icon = isCustom ? '📁' : (list.id==='pnhd'?'📋':list.id==='studio'?'🎨':list.id==='tematika'?'🏷':'🔍');
+    return '<a class="nav-item" href="#list-' + list.id + '">' + icon + ' ' + esc(list.title) +
+      '<span class="nav-count" id="nav-count-' + list.id + '">' + open + '</span>' +
+      (isCustom ? '<button class="nav-delete" onclick="deleteList(\'' + list.id + '\',event)" title="Удалить">✕</button>' : '') +
+      '</a>';
+  }).join('');
+  nav.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      nav.querySelectorAll('a').forEach(n => n.classList.remove('active'));
+      a.classList.add('active');
+    });
   });
-  container.innerHTML = html;
+}
+
+function renderAll() {
+  const content = document.getElementById('content');
+  content.innerHTML = allLists().map(renderListBlock).join('');
+  renderNav();
 }
 
 function countDone(tasks) {
   let done = 0, total = 0;
   tasks.forEach(t => {
-    total++; if (getTask(t.id).done) done++;
-    (t.subtasks||[]).forEach(s => { total++; if (getTask(s.id).done) done++; });
+    total++; if (getCheck(t.id).done) done++;
+    (t.subtasks||[]).forEach(s => { total++; if (getCheck(s.id).done) done++; });
   });
   return { done, total };
 }
 
-function updateProgress() {
-  LISTS.forEach(list => {
-    const { done, total } = countDone(list.tasks);
-    const el = document.getElementById('progress-' + list.id);
-    if (el) el.textContent = done + '/' + total;
-    const nc = document.getElementById('nav-count-' + list.id);
-    if (nc) nc.textContent = total - done;
-  });
-}
-
 function updateStats() {
   let td = 0, ta = 0;
-  LISTS.forEach(list => { const { done, total } = countDone(list.tasks); td += done; ta += total; });
+  allLists().forEach(list => { const { done, total } = countDone(list.tasks); td += done; ta += total; });
   document.getElementById('stat-total').textContent = ta;
   document.getElementById('stat-done').textContent = td;
   document.getElementById('stat-open').textContent = ta - td;
   const pct = ta ? Math.round(td/ta*100) : 0;
   document.getElementById('global-progress').style.width = pct + '%';
   document.getElementById('progress-label').textContent = pct + '% выполнено';
+  // update nav counts
+  allLists().forEach(list => {
+    const { done, total } = countDone(list.tasks);
+    const nc = document.getElementById('nav-count-' + list.id);
+    if (nc) nc.textContent = total - done;
+    const pr = document.getElementById('progress-' + list.id);
+    if (pr) pr.textContent = done + '/' + total;
+  });
 }
 
-function render() {
-  LISTS.forEach(list => renderList(list.id, list.tasks));
-  updateProgress();
-}
-
-function filterTasks(mode) {
-  LISTS.forEach(list => list.tasks.forEach(task => {
+function setFilter(mode) {
+  currentFilter = mode;
+  ['all','open','done'].forEach(m => document.getElementById('filter-'+m).classList.toggle('active-filter', m===mode));
+  allLists().forEach(list => list.tasks.forEach(task => {
     const wrap = document.getElementById('twrap-' + task.id);
     if (!wrap) return;
-    const done = getTask(task.id).done;
+    const done = getCheck(task.id).done;
     if (mode === 'done' && !done) wrap.style.display = 'none';
     else if (mode === 'open' && done) wrap.style.display = 'none';
     else wrap.style.display = '';
   }));
 }
 
-document.querySelectorAll('.nav-item[href]').forEach(a => {
-  a.addEventListener('click', e => {
-    e.preventDefault();
-    const target = document.querySelector(a.getAttribute('href'));
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    a.classList.add('active');
-  });
-});
+function scrollToList(id) {
+  setTimeout(() => {
+    const el = document.getElementById('list-' + id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
+}
 
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Keyboard: Escape closes modal
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// Date
 const el = document.getElementById('date-display');
 if (el) el.textContent = new Date().toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' });
 
 loadState();
-render();
+renderAll();
 updateStats();
 </script>
 </body>
