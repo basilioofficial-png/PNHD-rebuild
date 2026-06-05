@@ -119,11 +119,42 @@
   .task-note { font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
   .task-num { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); min-width: 20px; margin-top: 3px; user-select: none; }
   .task-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-  .tag { font-size: 11px; font-family: 'IBM Plex Mono', monospace; padding: 1px 7px; border-radius: 3px; background: var(--tag-bg); color: var(--text-muted); }
+  .tag { font-size: 11px; font-family: 'IBM Plex Mono', monospace; padding: 1px 7px; border-radius: 3px; background: var(--tag-bg); color: var(--text-muted); cursor: pointer; transition: opacity 0.1s; }
+  .tag:hover { opacity: 0.75; }
   .tag.waiting { background: #fef3e2; color: #b07b2a; }
   .tag.urgent { background: #fde8e8; color: #c0392b; }
   .tag.dev { background: #e8f0fe; color: #3b5bdb; }
   .tag.seo { background: #e8f4f0; color: #2f6b4a; }
+  .tag.add-tag { background: none; border: 1px dashed var(--border); color: var(--text-muted); font-size: 11px; padding: 0px 6px; cursor: pointer; }
+  .tag.add-tag:hover { border-color: var(--accent); color: var(--accent); opacity: 1; }
+  /* Tag filter pills in sidebar */
+  .tag-filters { padding: 4px 10px 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .sidebar.collapsed .tag-filters { display: none; }
+  .tag-filter-pill { font-size: 11px; font-family: 'IBM Plex Mono', monospace; padding: 2px 8px; border-radius: 3px; background: var(--tag-bg); color: var(--text-muted); cursor: pointer; border: 1.5px solid transparent; transition: all 0.1s; }
+  .tag-filter-pill:hover { border-color: var(--text-muted); }
+  .tag-filter-pill.active { border-color: currentColor; font-weight: 500; }
+  .tag-filter-pill.waiting { background: #fef3e2; color: #b07b2a; }
+  .tag-filter-pill.urgent { background: #fde8e8; color: #c0392b; }
+  .tag-filter-pill.dev { background: #e8f0fe; color: #3b5bdb; }
+  .tag-filter-pill.seo { background: #e8f4f0; color: #2f6b4a; }
+  /* Tag picker popup */
+  .tag-picker { position: absolute; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); padding: 12px; z-index: 50; min-width: 220px; top: 100%; left: 0; margin-top: 4px; }
+  .tag-picker-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; margin-bottom: 8px; }
+  .tag-picker-list { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+  .tag-picker-item { font-size: 11px; font-family: 'IBM Plex Mono', monospace; padding: 2px 8px; border-radius: 3px; cursor: pointer; border: 1.5px solid transparent; transition: all 0.1s; display: flex; align-items: center; gap: 4px; }
+  .tag-picker-item:hover { opacity: 0.8; }
+  .tag-picker-item.selected { border-color: currentColor; }
+  .tag-picker-item.waiting { background: #fef3e2; color: #b07b2a; }
+  .tag-picker-item.urgent { background: #fde8e8; color: #c0392b; }
+  .tag-picker-item.dev { background: #e8f0fe; color: #3b5bdb; }
+  .tag-picker-item.seo { background: #e8f4f0; color: #2f6b4a; }
+  .tag-picker-item.custom { background: var(--tag-bg); color: var(--text-secondary); }
+  .tag-picker-divider { border: none; border-top: 1px solid var(--border-light); margin: 8px 0; }
+  .tag-picker-new { display: flex; gap: 6px; align-items: center; }
+  .tag-picker-input { flex: 1; border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; font-size: 12px; font-family: 'IBM Plex Sans', sans-serif; outline: none; }
+  .tag-picker-input:focus { border-color: var(--accent); }
+  .tag-picker-add { background: var(--accent); color: white; border: none; border-radius: 4px; padding: 4px 10px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .tag-picker-wrap { position: relative; display: inline-block; }
   .task-actions { opacity: 0; transition: opacity 0.1s; display: flex; align-items: center; gap: 2px; margin-top: 2px; }
   .action-btn { background: none; border: none; cursor: pointer; padding: 3px 7px; border-radius: 4px; font-size: 12px; color: var(--text-muted); transition: background 0.1s, color 0.1s; white-space: nowrap; font-family: 'IBM Plex Sans', sans-serif; }
   .action-btn:hover { background: var(--border); color: var(--text); }
@@ -242,6 +273,8 @@
     <div class="nav-filter-item active-filter" id="filter-all" onclick="setFilter('all')"><span>🔵</span><span class="nav-filter-label"> Все задачи</span></div>
     <div class="nav-filter-item" id="filter-open" onclick="setFilter('open')"><span>⬜</span><span class="nav-filter-label"> Открытые</span></div>
     <div class="nav-filter-item" id="filter-done" onclick="setFilter('done')"><span>✅</span><span class="nav-filter-label"> Выполненные</span></div>
+    <div class="nav-section" style="padding-top:8px">Теги</div>
+    <div class="tag-filters" id="tag-filters"></div>
   </div>
 </nav>
 
@@ -393,16 +426,42 @@ const STATIC_LISTS = [
   ]},
 ];
 
-const TAG_LABELS = { waiting: 'ждём', urgent: 'срочно', dev: 'разработка', seo: 'SEO' };
+const BUILTIN_TAGS = {
+  waiting: { label: 'ждём', cls: 'waiting' },
+  urgent:  { label: 'срочно', cls: 'urgent' },
+  dev:     { label: 'разработка', cls: 'dev' },
+  seo:     { label: 'SEO', cls: 'seo' },
+};
+const TAG_LABELS = Object.fromEntries(Object.entries(BUILTIN_TAGS).map(([k,v]) => [k, v.label]));
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
-let checks = {};   // { task_id: { done } }
-let comments = {}; // { task_id: [{ id, text, created_at }] }
-let allListsData = []; // все списки из Supabase
+let checks = {};
+let comments = {};
+let allListsData = [];
 let currentFilter = 'all';
+let activeTagFilter = null; // null = все теги
 let modalCallback = null;
+let openPickerId = null; // какой таг-пикер открыт
 
 function allLists() { return allListsData; }
+
+// Собрать все уникальные теги из всех задач
+function getAllTags() {
+  const tags = new Set(Object.keys(BUILTIN_TAGS));
+  allListsData.forEach(list => list.tasks.forEach(task => {
+    (task.tags || []).forEach(t => tags.add(t));
+    (task.subtasks || []).forEach(sub => (sub.tags || []).forEach(t => tags.add(t)));
+  }));
+  return Array.from(tags);
+}
+
+function getTagLabel(tag) {
+  return BUILTIN_TAGS[tag] ? BUILTIN_TAGS[tag].label : tag;
+}
+
+function getTagCls(tag) {
+  return BUILTIN_TAGS[tag] ? BUILTIN_TAGS[tag].cls : 'custom';
+}
 
 // ─── SUPABASE LOAD ────────────────────────────────────────────────────────────
 async function loadFromSupabase() {
@@ -742,8 +801,8 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 function renderTask(task, i, listId) {
   const done = checks[task.id] ? checks[task.id].done : false;
   const cc = (comments[task.id] || []).length;
-  const tagHtml = (task.tags || []).map(tag => '<span class="tag ' + tag + '">' + (TAG_LABELS[tag]||tag) + '</span>').join('');
-  const hide = (currentFilter === 'done' && !done) || (currentFilter === 'open' && done) ? 'style="display:none"' : '';
+  const taskTags = task.tags || [];
+  const hide = (currentFilter === 'done' && !done) || (currentFilter === 'open' && done) || (activeTagFilter && !taskTags.includes(activeTagFilter)) ? 'style="display:none"' : '';
 
   let html = '<div class="task" id="twrap-' + task.id + '" ' + hide + '>';
   html += '<div class="task-row">';
@@ -752,12 +811,40 @@ function renderTask(task, i, listId) {
   html += '<div class="task-body">';
   html += '<div class="task-text ' + (done?'done':'') + '" id="ttext-' + task.id + '" ondblclick="editTaskText(\'' + task.id + '\',\'' + listId + '\')" title="Двойной клик — редактировать">' + esc(task.text) + '</div>';
   html += '<div class="task-note" id="tnote-' + task.id + '" ondblclick="editTaskNote(\'' + task.id + '\',\'' + listId + '\')" title="Двойной клик — редактировать заметку">' + (task.note ? esc(task.note) : '<span style="color:var(--border);font-size:11px">двойной клик — добавить заметку</span>') + '</div>';
-  if (tagHtml) html += '<div class="task-tags">' + tagHtml + '</div>';
+  // Tags row with picker
+  html += '<div class="task-tags tag-picker-wrap" id="tagwrap-' + task.id + '">';
+  taskTags.forEach(tag => {
+    const cls = getTagCls(tag);
+    html += '<span class="tag ' + cls + '" onclick="event.stopPropagation()" title="Кликни ✕ чтобы удалить">' +
+      getTagLabel(tag) +
+      '<span style="margin-left:4px;cursor:pointer;opacity:0.5;font-size:10px" onclick="removeTag(\'' + task.id + '\',\'' + listId + '\',\'' + tag + '\',event)">✕</span>' +
+      '</span>';
+  });
+  html += '<span class="tag add-tag" onclick="openTagPicker(\'' + task.id + '\',\'' + listId + '\',event)" title="Добавить тег">+ тег</span>';
+  html += '</div>';
   html += '</div>';
   html += '<div class="task-actions">';
   html += '<button class="action-btn" onclick="toggleComments(\'' + task.id + '\',event)">💬 <span id="badge-' + task.id + '" class="comment-badge">' + (cc>0?cc+' коммент.':'') + '</span></button>';
   html += '<button class="action-btn danger" onclick="deleteTask(\'' + listId + '\',\'' + task.id + '\',event)">Удалить</button>';
   html += '</div></div>';
+
+  if (task.subtasks && task.subtasks.length) {
+    html += '<div class="subtasks">';
+    task.subtasks.forEach(sub => {
+      const sd = checks[sub.id] ? checks[sub.id].done : false;
+      html += '<div class="subtask">' +
+        '<div class="checkbox ' + (sd?'checked':'') + '" onclick="toggleDone(\'' + sub.id + '\',event)"></div>' +
+        '<div class="subtask-text ' + (sd?'done':'') + '" id="stext-' + sub.id + '" onclick="toggleDone(\'' + sub.id + '\',event)" ondblclick="event.stopPropagation();editSubtaskText(\'' + task.id + '\',\'' + sub.id + '\',\'' + listId + '\')" title="Двойной клик — редактировать">' + esc(sub.text) + '</div>' +
+        '<button class="subtask-del" onclick="deleteSubtask(\'' + task.id + '\',\'' + sub.id + '\',\'' + listId + '\',event)">✕</button>' +
+        '</div>';
+    });
+    html += '</div>';
+  }
+  html += '<div class="subtasks"><div class="add-subtask-row"><input class="add-subtask-input" id="newsub-' + task.id + '" placeholder="+ подзадача" onkeydown="addSubtask(\'' + task.id + '\',\'' + listId + '\',event)"></div></div>';
+  html += '<div class="comments-area" id="comments-' + task.id + '"></div>';
+  html += '</div>';
+  return html;
+}
 
   if (task.subtasks && task.subtasks.length) {
     html += '<div class="subtasks">';
@@ -853,9 +940,113 @@ function closeMobileSidebar() {
   }
 })();
 
+// ─── TAG PICKER ───────────────────────────────────────────────────────────────
+function openTagPicker(taskId, listId, e) {
+  e.stopPropagation();
+  if (openPickerId && openPickerId !== taskId) closeTagPicker();
+  const existing = document.getElementById('tagpicker-' + taskId);
+  if (existing) { closeTagPicker(); return; }
+  openPickerId = taskId;
+  const list = allListsData.find(l => l.id === listId);
+  const task = list ? list.tasks.find(t => t.id === taskId) : null;
+  if (!task) return;
+  const taskTags = task.tags || [];
+  const allTags = getAllTags();
+  let html = '<div class="tag-picker" id="tagpicker-' + taskId + '" onclick="event.stopPropagation()">';
+  html += '<div class="tag-picker-title">Теги задачи</div><div class="tag-picker-list">';
+  allTags.forEach(tag => {
+    const selected = taskTags.includes(tag);
+    const cls = getTagCls(tag);
+    html += '<div class="tag-picker-item ' + cls + (selected?' selected':'') + '" onclick="toggleTaskTag(\'' + taskId + '\',\'' + listId + '\',\'' + tag + '\')">' + (selected?'✓ ':'') + getTagLabel(tag) + '</div>';
+  });
+  html += '</div><hr class="tag-picker-divider">';
+  html += '<div class="tag-picker-new"><input class="tag-picker-input" id="newtag-input-' + taskId + '" placeholder="Новый тег..." onkeydown="if(event.key===\'Enter\')addNewTag(\'' + taskId + '\',\'' + listId + '\')"><button class="tag-picker-add" onclick="addNewTag(\'' + taskId + '\',\'' + listId + '\')">+ Добавить</button></div>';
+  html += '</div>';
+  const wrap = document.getElementById('tagwrap-' + taskId);
+  if (wrap) { wrap.insertAdjacentHTML('beforeend', html); }
+  setTimeout(() => { const inp = document.getElementById('newtag-input-' + taskId); if(inp) inp.focus(); }, 50);
+}
+
+function closeTagPicker() {
+  if (openPickerId) {
+    const el = document.getElementById('tagpicker-' + openPickerId);
+    if (el) el.remove();
+    openPickerId = null;
+  }
+}
+
+async function toggleTaskTag(taskId, listId, tag) {
+  const list = allListsData.find(l => l.id === listId);
+  const task = list ? list.tasks.find(t => t.id === taskId) : null;
+  if (!task) return;
+  if (!task.tags) task.tags = [];
+  const idx = task.tags.indexOf(tag);
+  if (idx >= 0) task.tags.splice(idx, 1); else task.tags.push(tag);
+  closeTagPicker(); renderAll(); updateStats(); renderTagFilters();
+  await saveList(listId);
+}
+
+async function addNewTag(taskId, listId) {
+  const inp = document.getElementById('newtag-input-' + taskId);
+  if (!inp || !inp.value.trim()) return;
+  const tag = inp.value.trim().toLowerCase().replace(/\s+/g, '-');
+  const list = allListsData.find(l => l.id === listId);
+  const task = list ? list.tasks.find(t => t.id === taskId) : null;
+  if (!task) return;
+  if (!task.tags) task.tags = [];
+  if (!task.tags.includes(tag)) task.tags.push(tag);
+  closeTagPicker(); renderAll(); updateStats(); renderTagFilters();
+  await saveList(listId);
+}
+
+async function removeTag(taskId, listId, tag, e) {
+  e.stopPropagation();
+  const list = allListsData.find(l => l.id === listId);
+  const task = list ? list.tasks.find(t => t.id === taskId) : null;
+  if (!task) return;
+  task.tags = (task.tags || []).filter(t => t !== tag);
+  renderAll(); updateStats(); renderTagFilters();
+  await saveList(listId);
+}
+
+// ─── TAG FILTERS ──────────────────────────────────────────────────────────────
+function renderTagFilters() {
+  const el = document.getElementById('tag-filters');
+  if (!el) return;
+  const tags = getAllTags();
+  if (!tags.length) { el.innerHTML = '<span style="font-size:11px;color:var(--text-muted);">нет тегов</span>'; return; }
+  el.innerHTML = tags.map(tag => {
+    const cls = getTagCls(tag);
+    const active = activeTagFilter === tag;
+    return '<span class="tag-filter-pill ' + cls + (active?' active':'') + '" onclick="setTagFilter(\'' + tag + '\')" title="Фильтр по тегу">' + getTagLabel(tag) + '</span>';
+  }).join('');
+}
+
+function setTagFilter(tag) {
+  activeTagFilter = activeTagFilter === tag ? null : tag;
+  renderTagFilters();
+  applyVisibility();
+}
+
+function applyVisibility() {
+  allListsData.forEach(list => list.tasks.forEach(task => {
+    const wrap = document.getElementById('twrap-' + task.id);
+    if (!wrap) return;
+    const done = checks[task.id] ? checks[task.id].done : false;
+    let show = true;
+    if (currentFilter === 'done' && !done) show = false;
+    if (currentFilter === 'open' && done) show = false;
+    if (activeTagFilter && !(task.tags || []).includes(activeTagFilter)) show = false;
+    wrap.style.display = show ? '' : 'none';
+  }));
+}
+
 function renderAll() {
+  closeTagPicker();
   document.getElementById('content').innerHTML = allListsData.map(renderListBlock).join('');
   renderNav();
+  renderTagFilters();
+  applyVisibility();
 }
 
 function countDone(tasks) {
@@ -888,17 +1079,11 @@ function updateStats() {
 function setFilter(mode) {
   currentFilter = mode;
   ['all','open','done'].forEach(m => document.getElementById('filter-'+m).classList.toggle('active-filter', m===mode));
-  allListsData.forEach(list => list.tasks.forEach(task => {
-    const wrap = document.getElementById('twrap-' + task.id);
-    if (!wrap) return;
-    const done = checks[task.id] ? checks[task.id].done : false;
-    if (mode === 'done' && !done) wrap.style.display = 'none';
-    else if (mode === 'open' && done) wrap.style.display = 'none';
-    else wrap.style.display = '';
-  }));
+  applyVisibility();
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.addEventListener('click', () => closeTagPicker());
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeTagPicker(); } });
 document.getElementById('date-display').textContent = new Date().toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' });
 
 loadFromSupabase();
