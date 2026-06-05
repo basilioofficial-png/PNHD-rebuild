@@ -16,31 +16,73 @@
     --danger: #c0392b; --danger-light: #fde8e8;
   }
   body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-  .sidebar { position: fixed; top: 0; left: 0; width: 240px; height: 100vh; background: var(--bg-hover); border-right: 1px solid var(--border); overflow-y: auto; z-index: 10; display: flex; flex-direction: column; }
-  .sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid var(--border); }
-  .sidebar-logo span { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; letter-spacing: 0.12em; color: var(--text); text-transform: uppercase; }
-  .sidebar-logo small { display: block; font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  /* SIDEBAR */
+  .sidebar { position: fixed; top: 0; left: 0; width: 240px; height: 100vh; background: var(--bg-hover); border-right: 1px solid var(--border); overflow-y: auto; overflow-x: hidden; z-index: 20; display: flex; flex-direction: column; transition: width 0.22s ease; }
+  .sidebar.collapsed { width: 52px; }
+  .sidebar-logo { padding: 16px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; min-height: 60px; }
+  .sidebar-logo-text { overflow: hidden; white-space: nowrap; }
+  .sidebar-logo-text span { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; letter-spacing: 0.12em; color: var(--text); text-transform: uppercase; }
+  .sidebar-logo-text small { display: block; font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .sidebar.collapsed .sidebar-logo-text { display: none; }
+  .sidebar-toggle { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; border-radius: 4px; font-size: 16px; line-height: 1; flex-shrink: 0; transition: color 0.1s, background 0.1s; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; }
+  .sidebar-toggle:hover { color: var(--text); background: var(--border); }
+  .sidebar.collapsed .sidebar-toggle { margin: 0 auto; }
+
+  /* Sync dot */
   .sync-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); margin-left: 6px; vertical-align: middle; transition: background 0.3s; }
   .sync-dot.syncing { background: #f0a500; }
   .sync-dot.ok { background: var(--accent); }
   .sync-dot.error { background: var(--danger); }
-  .nav-section { padding: 16px 20px 6px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+
+  /* Nav labels — hide when collapsed */
+  .nav-label { overflow: hidden; white-space: nowrap; transition: opacity 0.15s; flex: 1; min-width: 0; }
+  .sidebar.collapsed .nav-label { opacity: 0; width: 0; }
+  .sidebar.collapsed .nav-count { display: none; }
+  .sidebar.collapsed .nav-delete { display: none; }
+
+  .nav-section { padding: 16px 20px 6px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; white-space: nowrap; overflow: hidden; }
+  .sidebar.collapsed .nav-section { padding: 12px 0 4px; text-align: center; font-size: 8px; letter-spacing: 0; }
   .nav-lists { flex: 1; }
-  .nav-item { display: flex; align-items: center; gap: 8px; padding: 6px 20px; font-size: 13.5px; color: var(--text-secondary); cursor: pointer; transition: background 0.12s, color 0.12s; text-decoration: none; position: relative; user-select: none; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 6px 14px; font-size: 13.5px; color: var(--text-secondary); cursor: pointer; transition: background 0.12s, color 0.12s; text-decoration: none; position: relative; user-select: none; }
+  .sidebar.collapsed .nav-item { justify-content: center; padding: 8px 0; }
   .nav-item:hover { background: var(--border-light); color: var(--text); }
   .nav-item:hover .nav-delete { opacity: 1; }
   .nav-item.active { background: var(--border); color: var(--text); font-weight: 500; }
   .nav-item.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); border-radius: 0 2px 2px 0; }
-  .nav-count { margin-left: auto; font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); background: var(--border); padding: 1px 6px; border-radius: 10px; min-width: 20px; text-align: center; }
+  .nav-count { margin-left: auto; font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); background: var(--border); padding: 1px 6px; border-radius: 10px; min-width: 20px; text-align: center; flex-shrink: 0; }
   .nav-delete { opacity: 0; transition: opacity 0.1s; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; padding: 0 2px; margin-left: 4px; }
   .nav-delete:hover { color: var(--danger); }
-  .nav-add-list { display: flex; align-items: center; gap: 6px; padding: 8px 20px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: color 0.12s; border-top: 1px solid var(--border-light); margin-top: 4px; }
+  .nav-add-list { display: flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: color 0.12s; border-top: 1px solid var(--border-light); margin-top: 4px; white-space: nowrap; overflow: hidden; }
+  .sidebar.collapsed .nav-add-list { justify-content: center; padding: 8px 0; }
   .nav-add-list:hover { color: var(--accent); }
+  .nav-add-list-label { overflow: hidden; white-space: nowrap; }
+  .sidebar.collapsed .nav-add-list-label { display: none; }
   .nav-bottom { border-top: 1px solid var(--border); padding: 8px 0; }
-  .nav-filter-item { display: flex; align-items: center; gap: 8px; padding: 5px 20px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: background 0.1s, color 0.1s; }
+  .nav-filter-item { display: flex; align-items: center; gap: 8px; padding: 5px 14px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: background 0.1s, color 0.1s; white-space: nowrap; overflow: hidden; }
+  .sidebar.collapsed .nav-filter-item { justify-content: center; padding: 6px 0; }
   .nav-filter-item:hover { background: var(--border-light); color: var(--text); }
   .nav-filter-item.active-filter { color: var(--accent); font-weight: 500; }
-  .main { margin-left: 240px; min-height: 100vh; }
+  .nav-filter-label { overflow: hidden; white-space: nowrap; }
+  .sidebar.collapsed .nav-filter-label { display: none; }
+
+  /* Main shifts with sidebar */
+  .main { margin-left: 240px; min-height: 100vh; transition: margin-left 0.22s ease; }
+  .main.collapsed { margin-left: 52px; }
+
+  /* Mobile overlay */
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 15; }
+  @media (max-width: 768px) {
+    .sidebar { width: 240px; left: -240px; transition: left 0.22s ease; box-shadow: none; }
+    .sidebar.mobile-open { left: 0; box-shadow: 4px 0 20px rgba(0,0,0,0.12); }
+    .sidebar.collapsed { width: 240px; left: -240px; }
+    .main { margin-left: 0 !important; }
+    .main.collapsed { margin-left: 0 !important; }
+    .sidebar-overlay { display: block; opacity: 0; pointer-events: none; transition: opacity 0.22s; }
+    .sidebar-overlay.open { opacity: 1; pointer-events: all; }
+    .mobile-toggle { display: flex !important; }
+  }
+  .mobile-toggle { display: none; position: fixed; top: 12px; left: 12px; z-index: 30; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 10px; font-size: 16px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
   .stats-row { display: flex; gap: 24px; padding: 16px 48px; border-bottom: 1px solid var(--border); background: var(--bg-hover); }
   .stat { display: flex; flex-direction: column; gap: 2px; }
   .stat-value { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 500; }
@@ -166,19 +208,25 @@
   </div>
 </div>
 
-<nav class="sidebar">
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+<button class="mobile-toggle" onclick="openMobileSidebar()">☰</button>
+
+<nav class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <span>PNHD <span class="sync-dot" id="sync-dot" title="статус синхронизации"></span></span>
-    <small>Управление задачами</small>
+    <div class="sidebar-logo-text">
+      <span>PNHD <span class="sync-dot" id="sync-dot"></span></span>
+      <small>Управление задачами</small>
+    </div>
+    <button class="sidebar-toggle" onclick="toggleSidebar()" id="sidebar-toggle-btn" title="Свернуть меню">◀</button>
   </div>
   <div class="nav-section">Списки</div>
   <div class="nav-lists" id="nav-lists"></div>
-  <div class="nav-add-list" onclick="openNewListModal()"><span style="font-size:16px;line-height:1">+</span> Новый список</div>
+  <div class="nav-add-list" onclick="openNewListModal()"><span style="font-size:16px;line-height:1;flex-shrink:0">+</span><span class="nav-add-list-label"> Новый список</span></div>
   <div class="nav-bottom">
     <div class="nav-section" style="padding-top:8px">Фильтр</div>
-    <div class="nav-filter-item active-filter" id="filter-all" onclick="setFilter('all')">Все задачи</div>
-    <div class="nav-filter-item" id="filter-open" onclick="setFilter('open')">Открытые</div>
-    <div class="nav-filter-item" id="filter-done" onclick="setFilter('done')">Выполненные</div>
+    <div class="nav-filter-item active-filter" id="filter-all" onclick="setFilter('all')"><span>🔵</span><span class="nav-filter-label"> Все задачи</span></div>
+    <div class="nav-filter-item" id="filter-open" onclick="setFilter('open')"><span>⬜</span><span class="nav-filter-label"> Открытые</span></div>
+    <div class="nav-filter-item" id="filter-done" onclick="setFilter('done')"><span>✅</span><span class="nav-filter-label"> Выполненные</span></div>
   </div>
 </nav>
 
@@ -631,7 +679,9 @@ function renderNav() {
     const { done, total } = countDone(list.tasks);
     const isCustom = !!customLists.find(l => l.id === list.id);
     const icon = isCustom ? '📁' : (list.id==='pnhd'?'📋':list.id==='studio'?'🎨':list.id==='tematika'?'🏷':'🔍');
-    return '<a class="nav-item" href="#list-' + list.id + '">' + icon + ' ' + esc(list.title) +
+    return '<a class="nav-item" href="#list-' + list.id + '">' +
+      '<span style="flex-shrink:0">' + icon + '</span>' +
+      '<span class="nav-label">' + esc(list.title) + '</span>' +
       '<span class="nav-count" id="nav-count-' + list.id + '">' + (total-done) + '</span>' +
       (isCustom ? '<button class="nav-delete" onclick="deleteList(\'' + list.id + '\',event)">✕</button>' : '') +
       '</a>';
@@ -643,9 +693,45 @@ function renderNav() {
       if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       nav.querySelectorAll('a').forEach(n => n.classList.remove('active'));
       a.classList.add('active');
+      // close mobile sidebar on nav click
+      closeMobileSidebar();
     });
   });
 }
+
+// ─── SIDEBAR TOGGLE ───────────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const main = document.querySelector('.main');
+  const btn = document.getElementById('sidebar-toggle-btn');
+  const collapsed = sidebar.classList.toggle('collapsed');
+  main.classList.toggle('collapsed', collapsed);
+  btn.textContent = collapsed ? '▶' : '◀';
+  btn.title = collapsed ? 'Развернуть меню' : 'Свернуть меню';
+  localStorage.setItem('pnhd_sidebar', collapsed ? '1' : '0');
+}
+
+function openMobileSidebar() {
+  document.getElementById('sidebar').classList.add('mobile-open');
+  document.getElementById('sidebar-overlay').classList.add('open');
+}
+
+function closeMobileSidebar() {
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+// restore sidebar state
+(function() {
+  if (localStorage.getItem('pnhd_sidebar') === '1') {
+    const sidebar = document.getElementById('sidebar');
+    const main = document.querySelector('.main');
+    const btn = document.getElementById('sidebar-toggle-btn');
+    if (sidebar) sidebar.classList.add('collapsed');
+    if (main) main.classList.add('collapsed');
+    if (btn) { btn.textContent = '▶'; btn.title = 'Развернуть меню'; }
+  }
+})();
 
 function renderAll() {
   document.getElementById('content').innerHTML = allLists().map(renderListBlock).join('');
