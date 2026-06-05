@@ -846,24 +846,6 @@ function renderTask(task, i, listId) {
   return html;
 }
 
-  if (task.subtasks && task.subtasks.length) {
-    html += '<div class="subtasks">';
-    task.subtasks.forEach(sub => {
-      const sd = checks[sub.id] ? checks[sub.id].done : false;
-      html += '<div class="subtask">' +
-        '<div class="checkbox ' + (sd?'checked':'') + '" onclick="toggleDone(\'' + sub.id + '\',event)"></div>' +
-        '<div class="subtask-text ' + (sd?'done':'') + '" id="stext-' + sub.id + '" onclick="toggleDone(\'' + sub.id + '\',event)" ondblclick="event.stopPropagation();editSubtaskText(\'' + task.id + '\',\'' + sub.id + '\',\'' + listId + '\')" title="Двойной клик — редактировать">' + esc(sub.text) + '</div>' +
-        '<button class="subtask-del" onclick="deleteSubtask(\'' + task.id + '\',\'' + sub.id + '\',\'' + listId + '\',event)">✕</button>' +
-        '</div>';
-    });
-    html += '</div>';
-  }
-  html += '<div class="subtasks"><div class="add-subtask-row"><input class="add-subtask-input" id="newsub-' + task.id + '" placeholder="+ подзадача" onkeydown="addSubtask(\'' + task.id + '\',\'' + listId + '\',event)"></div></div>';
-  html += '<div class="comments-area" id="comments-' + task.id + '"></div>';
-  html += '</div>';
-  return html;
-}
-
 function renderListBlock(list) {
   const { done, total } = countDone(list.tasks);
   let html = '<div class="list-block" id="list-' + list.id + '">';
