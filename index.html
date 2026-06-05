@@ -16,12 +16,14 @@
     --danger: #c0392b; --danger-light: #fde8e8;
   }
   body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-  /* SIDEBAR */
-  .sidebar { position: fixed; top: 0; left: 0; width: 240px; height: 100vh; background: var(--bg-hover); border-right: 1px solid var(--border); padding: 0; overflow-y: auto; z-index: 10; display: flex; flex-direction: column; }
+  .sidebar { position: fixed; top: 0; left: 0; width: 240px; height: 100vh; background: var(--bg-hover); border-right: 1px solid var(--border); overflow-y: auto; z-index: 10; display: flex; flex-direction: column; }
   .sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid var(--border); }
   .sidebar-logo span { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; letter-spacing: 0.12em; color: var(--text); text-transform: uppercase; }
   .sidebar-logo small { display: block; font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .sync-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); margin-left: 6px; vertical-align: middle; transition: background 0.3s; }
+  .sync-dot.syncing { background: #f0a500; }
+  .sync-dot.ok { background: var(--accent); }
+  .sync-dot.error { background: var(--danger); }
   .nav-section { padding: 16px 20px 6px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
   .nav-lists { flex: 1; }
   .nav-item { display: flex; align-items: center; gap: 8px; padding: 6px 20px; font-size: 13.5px; color: var(--text-secondary); cursor: pointer; transition: background 0.12s, color 0.12s; text-decoration: none; position: relative; user-select: none; }
@@ -30,7 +32,7 @@
   .nav-item.active { background: var(--border); color: var(--text); font-weight: 500; }
   .nav-item.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); border-radius: 0 2px 2px 0; }
   .nav-count { margin-left: auto; font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); background: var(--border); padding: 1px 6px; border-radius: 10px; min-width: 20px; text-align: center; }
-  .nav-delete { opacity: 0; transition: opacity 0.1s; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; padding: 0 2px; margin-left: 4px; line-height: 1; }
+  .nav-delete { opacity: 0; transition: opacity 0.1s; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; padding: 0 2px; margin-left: 4px; }
   .nav-delete:hover { color: var(--danger); }
   .nav-add-list { display: flex; align-items: center; gap: 6px; padding: 8px 20px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: color 0.12s; border-top: 1px solid var(--border-light); margin-top: 4px; }
   .nav-add-list:hover { color: var(--accent); }
@@ -38,8 +40,6 @@
   .nav-filter-item { display: flex; align-items: center; gap: 8px; padding: 5px 20px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: background 0.1s, color 0.1s; }
   .nav-filter-item:hover { background: var(--border-light); color: var(--text); }
   .nav-filter-item.active-filter { color: var(--accent); font-weight: 500; }
-
-  /* MAIN */
   .main { margin-left: 240px; min-height: 100vh; }
   .stats-row { display: flex; gap: 24px; padding: 16px 48px; border-bottom: 1px solid var(--border); background: var(--bg-hover); }
   .stat { display: flex; flex-direction: column; gap: 2px; }
@@ -53,8 +53,6 @@
   .topbar-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 500; }
   .topbar-meta { font-size: 12px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
   .content { padding: 40px 48px 80px; max-width: 820px; }
-
-  /* LIST BLOCK */
   .list-block { margin-bottom: 48px; }
   .list-header { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
   .list-title { font-family: 'Lora', serif; font-size: 22px; font-weight: 500; }
@@ -65,18 +63,6 @@
   .list-link-btn:hover { background: var(--accent-light); }
   .list-delete-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; padding: 3px 6px; border-radius: 4px; transition: color 0.1s, background 0.1s; }
   .list-delete-btn:hover { color: var(--danger); background: var(--danger-light); }
-
-  /* ADD TASK ROW */
-  .add-task-row { display: flex; align-items: center; gap: 8px; padding: 8px 8px; border-radius: var(--radius); margin-top: 4px; }
-  .add-task-input { flex: 1; border: none; border-bottom: 1px solid var(--border); padding: 5px 0; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: transparent; outline: none; transition: border-color 0.15s; }
-  .add-task-input:focus { border-color: var(--accent); }
-  .add-task-input::placeholder { color: var(--text-muted); }
-  .add-task-btn { background: var(--accent); color: white; border: none; border-radius: var(--radius); padding: 5px 12px; font-size: 12px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; }
-  .add-task-btn:hover { opacity: 0.85; }
-  .add-task-trigger { display: flex; align-items: center; gap: 6px; padding: 7px 8px; font-size: 13px; color: var(--text-muted); cursor: pointer; border-radius: var(--radius); transition: color 0.1s, background 0.1s; margin-top: 2px; }
-  .add-task-trigger:hover { color: var(--accent); background: var(--accent-light); }
-
-  /* TASK */
   .task { border-bottom: 1px solid var(--border-light); }
   .task-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 8px; border-radius: var(--radius); transition: background 0.1s; position: relative; }
   .task-row:hover { background: var(--bg-hover); }
@@ -86,9 +72,8 @@
   .checkbox.checked { background: var(--accent); border-color: var(--accent); }
   .checkbox.checked::after { content: ''; width: 9px; height: 5px; border-left: 1.5px solid white; border-bottom: 1.5px solid white; transform: rotate(-45deg) translateY(-1px); display: block; }
   .task-body { flex: 1; min-width: 0; }
-  .task-text { font-size: 14px; line-height: 1.5; color: var(--text); transition: color 0.15s; }
+  .task-text { font-size: 14px; line-height: 1.5; color: var(--text); }
   .task-text.done { color: var(--done-text); text-decoration: line-through; }
-  .task-text[contenteditable="true"] { outline: none; border-bottom: 1px solid var(--accent); }
   .task-note { font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
   .task-num { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); min-width: 20px; margin-top: 3px; user-select: none; }
   .task-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
@@ -102,8 +87,6 @@
   .action-btn:hover { background: var(--border); color: var(--text); }
   .action-btn.danger:hover { background: var(--danger-light); color: var(--danger); }
   .comment-badge { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); }
-
-  /* SUBTASKS */
   .subtasks { margin-left: 46px; margin-bottom: 2px; }
   .subtask { display: flex; align-items: flex-start; gap: 8px; padding: 5px 8px; border-radius: var(--radius); cursor: pointer; transition: background 0.1s; }
   .subtask:hover { background: var(--bg-hover); }
@@ -117,8 +100,6 @@
   .add-subtask-input { flex: 1; border: none; border-bottom: 1px dashed var(--border); padding: 3px 0; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: transparent; outline: none; }
   .add-subtask-input:focus { border-color: var(--accent); }
   .add-subtask-input::placeholder { color: var(--text-muted); }
-
-  /* COMMENTS */
   .comments-area { margin-left: 46px; margin-bottom: 8px; display: none; }
   .comments-area.open { display: block; }
   .comment { display: flex; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border-light); }
@@ -136,8 +117,12 @@
   .comment-submit { background: var(--accent); color: white; border: none; border-radius: var(--radius); padding: 7px 14px; font-size: 12px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; cursor: pointer; transition: opacity 0.15s; align-self: flex-end; }
   .comment-submit:hover { opacity: 0.85; }
   .empty-comments { padding: 10px 0 6px; font-size: 12px; color: var(--text-muted); font-style: italic; }
-
-  /* MODAL */
+  .add-task-row { display: flex; align-items: center; gap: 8px; padding: 8px 8px; border-radius: var(--radius); margin-top: 4px; }
+  .add-task-input { flex: 1; border: none; border-bottom: 1px solid var(--border); padding: 5px 0; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: transparent; outline: none; transition: border-color 0.15s; }
+  .add-task-input:focus { border-color: var(--accent); }
+  .add-task-input::placeholder { color: var(--text-muted); }
+  .add-task-btn { background: var(--accent); color: white; border: none; border-radius: var(--radius); padding: 5px 12px; font-size: 12px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; }
+  .add-task-btn:hover { opacity: 0.85; }
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
   .modal-overlay.open { opacity: 1; pointer-events: all; }
   .modal { background: var(--bg); border-radius: 10px; padding: 28px 32px; width: 420px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.12); transform: translateY(8px); transition: transform 0.15s; }
@@ -148,11 +133,10 @@
   .modal-input { width: 100%; border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: var(--bg); outline: none; transition: border-color 0.15s; }
   .modal-input:focus { border-color: var(--accent); }
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
-  .btn-cancel { background: none; border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 16px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text-muted); cursor: pointer; transition: background 0.1s; }
+  .btn-cancel { background: none; border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 16px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text-muted); cursor: pointer; }
   .btn-cancel:hover { background: var(--bg-hover); }
-  .btn-primary { background: var(--accent); color: white; border: none; border-radius: var(--radius); padding: 7px 16px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+  .btn-primary { background: var(--accent); color: white; border: none; border-radius: var(--radius); padding: 7px 16px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; cursor: pointer; }
   .btn-primary:hover { opacity: 0.85; }
-
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -160,21 +144,20 @@
 </head>
 <body>
 
-<!-- Modal -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
   <div class="modal">
-    <div class="modal-title" id="modal-title">Новый список</div>
+    <div class="modal-title">Новый список</div>
     <div class="modal-field">
-      <label class="modal-label" for="modal-name">Название</label>
-      <input class="modal-input" id="modal-name" type="text" placeholder="Например: Маркетинг" autocomplete="off" onkeydown="if(event.key==='Enter')confirmModal()">
+      <label class="modal-label">Название</label>
+      <input class="modal-input" id="modal-name" type="text" placeholder="Например: Маркетинг" onkeydown="if(event.key==='Enter')confirmModal()">
     </div>
-    <div class="modal-field" id="modal-subtitle-field">
-      <label class="modal-label" for="modal-subtitle">Подпись (необязательно)</label>
-      <input class="modal-input" id="modal-subtitle" type="text" placeholder="Например: сайт или команда" autocomplete="off" onkeydown="if(event.key==='Enter')confirmModal()">
+    <div class="modal-field">
+      <label class="modal-label">Подпись (необязательно)</label>
+      <input class="modal-input" id="modal-subtitle" type="text" placeholder="Например: сайт или команда" onkeydown="if(event.key==='Enter')confirmModal()">
     </div>
-    <div class="modal-field" id="modal-link-field" style="display:none">
-      <label class="modal-label" for="modal-link">Ссылка (необязательно)</label>
-      <input class="modal-input" id="modal-link" type="text" placeholder="https://..." autocomplete="off" onkeydown="if(event.key==='Enter')confirmModal()">
+    <div class="modal-field">
+      <label class="modal-label">Ссылка (необязательно)</label>
+      <input class="modal-input" id="modal-link" type="text" placeholder="https://..." onkeydown="if(event.key==='Enter')confirmModal()">
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Отмена</button>
@@ -185,14 +168,12 @@
 
 <nav class="sidebar">
   <div class="sidebar-logo">
-    <span>PNHD</span>
+    <span>PNHD <span class="sync-dot" id="sync-dot" title="статус синхронизации"></span></span>
     <small>Управление задачами</small>
   </div>
   <div class="nav-section">Списки</div>
   <div class="nav-lists" id="nav-lists"></div>
-  <div class="nav-add-list" onclick="openNewListModal()">
-    <span style="font-size:16px;line-height:1">+</span> Новый список
-  </div>
+  <div class="nav-add-list" onclick="openNewListModal()"><span style="font-size:16px;line-height:1">+</span> Новый список</div>
   <div class="nav-bottom">
     <div class="nav-section" style="padding-top:8px">Фильтр</div>
     <div class="nav-filter-item active-filter" id="filter-all" onclick="setFilter('all')">Все задачи</div>
@@ -219,7 +200,37 @@
 </div>
 
 <script>
-// ─── STATIC DATA (встроенные списки) ─────────────────────────────────────────
+// ─── SUPABASE CONFIG ──────────────────────────────────────────────────────────
+const SB_URL = 'https://yynacowbkrhgbcpdeeej.supabase.co';
+const SB_KEY = 'sb_publishable_7DasDsUdbn2u_xXWvkbZFw_Z-4VDqqA';
+
+async function sbFetch(path, options = {}) {
+  const res = await fetch(SB_URL + '/rest/v1/' + path, {
+    ...options,
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || '',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+// ─── SYNC INDICATOR ───────────────────────────────────────────────────────────
+function setSyncStatus(status) {
+  const dot = document.getElementById('sync-dot');
+  dot.className = 'sync-dot ' + status;
+  dot.title = status === 'ok' ? 'Синхронизировано' : status === 'syncing' ? 'Сохранение...' : 'Ошибка синхронизации';
+}
+
+// ─── STATIC DATA ──────────────────────────────────────────────────────────────
 const STATIC_LISTS = [
   { id: 'pnhd', title: 'PNHD', subtitle: 'pnhd.ru', link: null, tasks: [
     { id: 'p1', text: 'Перенос сайта с Tilda', note: 'Рассмотреть альтернативные CMS — упрощение интеграций + свобода доработок. Ждать предложений от SEO-подрядчика.', tags: ['waiting'], subtasks: [] },
@@ -245,7 +256,7 @@ const STATIC_LISTS = [
     { id: 's4', text: 'Починить падение заявок по вебхукам', note: 'Сейчас падает в основную воронку продаж — направить в правильную.', tags: ['urgent'], subtasks: [] },
     { id: 's5', text: 'Починить каталог', note: 'Верное отображение категорий.', tags: [], subtasks: [] },
     { id: 's6', text: 'Партия футболок от Студии', note: '', tags: [], subtasks: [
-      { id: 's6-1', text: 'Добавить на сайт возможность заказать футболки из готовых образцов (проработать логику товаров).' },
+      { id: 's6-1', text: 'Добавить на сайт возможность заказать футболки из готовых образцов.' },
       { id: 's6-2', text: 'Запустить товарную рекламу в Директе.' },
       { id: 's6-3', text: 'Запустить таргетированную рекламу на товары.' },
     ]},
@@ -256,10 +267,10 @@ const STATIC_LISTS = [
     { id: 't1', text: 'Перенос CMS', note: 'Обсудить вариант переноса на идентичную CMS.', tags: ['dev'], subtasks: [] },
     { id: 't2', text: 'Починить каталог', note: '', tags: [], subtasks: [] },
     { id: 't3', text: 'Добавить Авито', note: '', tags: [], subtasks: [] },
-    { id: 't4', text: 'Аналитика', note: 'В рамках объединения Битриксов — выстроить идентичную логику сквозной аналитики (как в PNHD/Студии).', tags: [], subtasks: [] },
+    { id: 't4', text: 'Аналитика', note: 'В рамках объединения Битриксов — выстроить идентичную логику сквозной аналитики.', tags: [], subtasks: [] },
   ]},
   { id: 'seo', title: 'SEO — pnhd.ru', subtitle: '45 задач · июнь 2026', link: 'https://docs.google.com/spreadsheets/d/1NDTFmQO8iUV685L5dqD5_HNGAWr0_yDSSjJdvI9q6jU/edit?gid=1346052867#gid=1346052867', tasks: [
-    { id: 'seo-g1', text: 'ГРУППА 1 — Срочные правки в Tilda (~2 часа)', note: 'Изменения title, description и настроек индексирования. Делается в интерфейсе Tilda за один день.', tags: ['urgent'], subtasks: [
+    { id: 'seo-g1', text: 'ГРУППА 1 — Срочные правки в Tilda (~2 часа)', note: 'Изменения title, description и настроек индексирования. Делается за один день.', tags: ['urgent'], subtasks: [
       { id: 'seo-1', text: '⚠ Снять noindex с /nanesenie-logotipov' },
       { id: 'seo-2', text: '⚠ Проверить и снять noindex на /branding' },
       { id: 'seo-3', text: '⚠ Проверить noindex на /branding/vishivka/mashinnaya' },
@@ -271,7 +282,7 @@ const STATIC_LISTS = [
       { id: 'seo-9', text: '⚠ Исправить title страниц каталога (брюки/шорты с title «Толстовка»)' },
       { id: 'seo-10', text: 'Отправить все изменённые страницы на переобход в Вебмастере' },
     ]},
-    { id: 'seo-g2', text: 'ГРУППА 2 — Оптимизация существующих страниц (~25 часов)', note: 'Улучшение контента, добавление CTA, переработка структуры. Результат через 2-4 недели.', tags: ['seo'], subtasks: [
+    { id: 'seo-g2', text: 'ГРУППА 2 — Оптимизация существующих страниц (~25 часов)', note: 'Улучшение контента, добавление CTA. Результат через 2-4 недели.', tags: ['seo'], subtasks: [
       { id: 'seo-11', text: 'Добавить CTA в статью /blog/kak-delayut-shelkografiyu (10 141 показ, CTR 1.17%)' },
       { id: 'seo-12', text: 'Переориентировать /korporativnyj-merch с «О нас» на коммерческий лендинг' },
       { id: 'seo-13', text: 'Улучшить сниппет /pechat-na-odezhde/shoppery (1 607 показов, CTR 0.25%)' },
@@ -283,17 +294,17 @@ const STATIC_LISTS = [
       { id: 'seo-19', text: 'Написать статью «Шелкография — что это» в блог' },
       { id: 'seo-20', text: 'Превратить /tekstilnyj-brending из статьи в посадочную страницу услуги' },
     ]},
-    { id: 'seo-g3', text: 'ГРУППА 3 — Новые страницы, высокий приоритет (~8 рабочих дней)', note: 'Создание новых посадочных страниц. Первые позиции через 1-3 месяца после создания.', tags: ['seo'], subtasks: [
+    { id: 'seo-g3', text: 'ГРУППА 3 — Новые страницы, высокий приоритет (~8 рабочих дней)', note: 'Создание новых посадочных страниц. Первые позиции через 1-3 месяца.', tags: ['seo'], subtasks: [
       { id: 'seo-21', text: '/merch-na-zakaz-spb — геолокальный лендинг' },
-      { id: 'seo-22', text: '⚠ /poshiv-korporativnogo-mercha с клиентами ВШЭ/VK/Газпром (334 показа, поз.4)' },
-      { id: 'seo-23', text: '/vishivka-na-odezhde-spb — 327 спросов, конкурент logotipshik.ru' },
+      { id: 'seo-22', text: '⚠ /poshiv-korporativnogo-mercha с клиентами ВШЭ/VK/Газпром' },
+      { id: 'seo-23', text: '/vishivka-na-odezhde-spb — 327 спросов' },
       { id: 'seo-24', text: '/tolstovki-s-logotipom-spb — 94 спроса в СПб' },
       { id: 'seo-25', text: '/brendirovannaya-odezhda-dlya-sotrudnikov — 120 спросов' },
       { id: 'seo-26', text: '/shelkografiya-na-futbolkah-spb — 474 спроса' },
       { id: 'seo-27', text: '/korporativnaya-forma — B2B с высоким чеком' },
       { id: 'seo-28', text: '/pechat-na-futbolkah — ВЧ транзакционный запрос' },
     ]},
-    { id: 'seo-g4', text: 'ГРУППА 4 — Новые страницы, средний приоритет (~7 рабочих дней)', note: 'Страницы под запросы с меньшим объёмом или более высокой конкуренцией. Делать после группы 3.', tags: ['seo'], subtasks: [
+    { id: 'seo-g4', text: 'ГРУППА 4 — Новые страницы, средний приоритет (~7 рабочих дней)', note: 'Делать после группы 3.', tags: ['seo'], subtasks: [
       { id: 'seo-29', text: '/tolstovki-s-logotipom (общий ВЧ) — 1 066 спросов' },
       { id: 'seo-30', text: '/futbolki-s-logotipom-optom — 348 спросов' },
       { id: 'seo-31', text: '/merch-pod-klyuch — 455 спросов суммарно' },
@@ -301,19 +312,19 @@ const STATIC_LISTS = [
       { id: 'seo-33', text: '/merch-dlya-sportivnyh-komand — есть кейс Спартак' },
       { id: 'seo-34', text: '/pechat-na-tolstovkah' },
     ]},
-    { id: 'seo-g5', text: 'ГРУППА 5 — Технические задачи (~14 часов, разработчик)', note: 'Задачи для Антона (pinscherweb.ru). Требуют доступа к коду, robots.txt, Roistat API.', tags: ['dev'], subtasks: [
+    { id: 'seo-g5', text: 'ГРУППА 5 — Технические задачи (~14 часов, разработчик)', note: 'Требуют доступа к коду, robots.txt, Roistat API.', tags: ['dev'], subtasks: [
       { id: 'seo-35', text: '⚠ UTM/source: Tilda → Anton script → Bitrix (attribution gap)' },
       { id: 'seo-36', text: '⚠ Roistat call tracking: отключить пустой сценарий Direct, включить Base' },
       { id: 'seo-37', text: '⚠ Закрыть URL с параметрами (?ctime=, ?tst=) от индексации' },
       { id: 'seo-38', text: '⚠ Добавить Schema.org разметку (LocalBusiness, Service)' },
       { id: 'seo-39', text: '⚠ Исправить canonical на страницах каталога с параметрами' },
     ]},
-    { id: 'seo-g6', text: 'ГРУППА 6 — Конкурентный мониторинг (~12 часов)', note: 'Разовые задачи по изучению конкурентов и настройке инструментов.', tags: [], subtasks: [
-      { id: 'seo-40', text: 'Изучить arteprint.ru — лидер СПб по шелкографии, нанесению, толстовкам' },
+    { id: 'seo-g6', text: 'ГРУППА 6 — Конкурентный мониторинг (~12 часов)', note: '', tags: [], subtasks: [
+      { id: 'seo-40', text: 'Изучить arteprint.ru — лидер СПб по шелкографии' },
       { id: 'seo-41', text: 'Изучить logotipshik.ru/vishivka — лидер по вышивке в СПб' },
       { id: 'seo-42', text: 'Изучить doneprint.ru — прямой конкурент в СПб' },
-      { id: 'seo-43', text: '⚠ Проверить Avrora Store Fashion вручную (закрыт для парсинга)' },
-      { id: 'seo-44', text: '⚠ Подключить Keys.so — трафик конкурентов и пересечение семантики (нужна подписка)' },
+      { id: 'seo-43', text: '⚠ Проверить Avrora Store Fashion вручную' },
+      { id: 'seo-44', text: '⚠ Подключить Keys.so (нужна подписка)' },
       { id: 'seo-45', text: 'Обновить таблицу конкурентов через 3 месяца' },
     ]},
   ]},
@@ -322,38 +333,159 @@ const STATIC_LISTS = [
 const TAG_LABELS = { waiting: 'ждём', urgent: 'срочно', dev: 'разработка', seo: 'SEO' };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
-let checkState = {};   // { [taskId]: { done, comments } }
-let customLists = [];  // доп. списки созданные пользователем
+let checks = {};      // { task_id: { done, updated_at } }
+let comments = {};    // { task_id: [{ id, text, created_at }] }
+let customLists = []; // доп. списки из Supabase
 let currentFilter = 'all';
 let modalCallback = null;
 
-function loadState() {
-  try { checkState = JSON.parse(localStorage.getItem('pnhd_checks') || '{}'); } catch { checkState = {}; }
-  try { customLists = JSON.parse(localStorage.getItem('pnhd_lists') || '[]'); } catch { customLists = []; }
-}
-function saveChecks() { localStorage.setItem('pnhd_checks', JSON.stringify(checkState)); }
-function saveLists() { localStorage.setItem('pnhd_lists', JSON.stringify(customLists)); }
-function getCheck(id) { if (!checkState[id]) checkState[id] = { done: false, comments: [] }; return checkState[id]; }
-
 function allLists() { return [...STATIC_LISTS, ...customLists]; }
+
+// ─── SUPABASE LOAD ────────────────────────────────────────────────────────────
+async function loadFromSupabase() {
+  setSyncStatus('syncing');
+  try {
+    const [checksData, commentsData, listsData] = await Promise.all([
+      sbFetch('checks?select=*'),
+      sbFetch('comments?select=*&order=created_at.asc'),
+      sbFetch('custom_lists?select=*&order=updated_at.asc'),
+    ]);
+    checks = {};
+    (checksData || []).forEach(r => { checks[r.task_id] = { done: r.done }; });
+    comments = {};
+    (commentsData || []).forEach(r => {
+      if (!comments[r.task_id]) comments[r.task_id] = [];
+      comments[r.task_id].push(r);
+    });
+    customLists = (listsData || []).map(r => ({ ...r, tasks: r.tasks || [] }));
+    setSyncStatus('ok');
+  } catch(e) {
+    console.error('Load error:', e);
+    setSyncStatus('error');
+  }
+  renderAll();
+  updateStats();
+}
+
+// ─── CHECKS ───────────────────────────────────────────────────────────────────
+async function toggleDone(id, e) {
+  if (e) e.stopPropagation();
+  const current = checks[id] ? checks[id].done : false;
+  const newDone = !current;
+  checks[id] = { done: newDone };
+  renderAll(); updateStats();
+  setSyncStatus('syncing');
+  try {
+    await sbFetch('checks', {
+      method: 'POST',
+      prefer: 'resolution=merge-duplicates',
+      headers: { 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({ task_id: id, done: newDone, updated_at: new Date().toISOString() })
+    });
+    setSyncStatus('ok');
+  } catch(e) { console.error(e); setSyncStatus('error'); }
+}
+
+// ─── TASKS ────────────────────────────────────────────────────────────────────
+async function addTaskToList(listId) {
+  const inp = document.getElementById('newtask-' + listId);
+  if (!inp || !inp.value.trim()) return;
+  const text = inp.value.trim();
+  inp.value = '';
+  const list = allLists().find(l => l.id === listId);
+  if (!list) return;
+  const taskId = listId + '-t' + Date.now();
+  list.tasks.push({ id: taskId, text, note: '', tags: [], subtasks: [] });
+  renderAll(); updateStats(); inp.focus();
+  if (customLists.find(l => l.id === listId)) await saveCustomList(listId);
+}
+
+async function deleteTask(listId, taskId, e) {
+  if (e) e.stopPropagation();
+  const list = allLists().find(l => l.id === listId);
+  if (!list) return;
+  list.tasks = list.tasks.filter(t => t.id !== taskId);
+  renderAll(); updateStats();
+  if (customLists.find(l => l.id === listId)) await saveCustomList(listId);
+}
+
+async function addSubtask(taskId, listId, e) {
+  if (e && e.key !== 'Enter') return;
+  const inp = document.getElementById('newsub-' + taskId);
+  if (!inp || !inp.value.trim()) return;
+  const text = inp.value.trim();
+  inp.value = '';
+  const list = allLists().find(l => l.id === listId);
+  if (!list) return;
+  const task = list.tasks.find(t => t.id === taskId);
+  if (!task) return;
+  task.subtasks.push({ id: taskId + '-s' + Date.now(), text });
+  renderAll(); updateStats();
+  setTimeout(() => { const ni = document.getElementById('newsub-' + taskId); if (ni) ni.focus(); }, 10);
+  if (customLists.find(l => l.id === listId)) await saveCustomList(listId);
+}
+
+async function deleteSubtask(taskId, subId, listId, e) {
+  if (e) e.stopPropagation();
+  const list = allLists().find(l => l.id === listId);
+  if (!list) return;
+  const task = list.tasks.find(t => t.id === taskId);
+  if (!task) return;
+  task.subtasks = task.subtasks.filter(s => s.id !== subId);
+  renderAll(); updateStats();
+  if (customLists.find(l => l.id === listId)) await saveCustomList(listId);
+}
+
+// ─── CUSTOM LISTS ─────────────────────────────────────────────────────────────
+async function saveCustomList(listId) {
+  const list = customLists.find(l => l.id === listId);
+  if (!list) return;
+  setSyncStatus('syncing');
+  try {
+    await sbFetch('custom_lists', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({ id: list.id, title: list.title, subtitle: list.subtitle || '', link: list.link || '', tasks: list.tasks, updated_at: new Date().toISOString() })
+    });
+    setSyncStatus('ok');
+  } catch(e) { console.error(e); setSyncStatus('error'); }
+}
+
+async function deleteList(listId, e) {
+  if (e) e.stopPropagation();
+  if (!confirm('Удалить список?')) return;
+  customLists = customLists.filter(l => l.id !== listId);
+  renderAll(); updateStats();
+  setSyncStatus('syncing');
+  try {
+    await sbFetch('custom_lists?id=eq.' + listId, { method: 'DELETE' });
+    setSyncStatus('ok');
+  } catch(e) { console.error(e); setSyncStatus('error'); }
+}
 
 // ─── MODAL ────────────────────────────────────────────────────────────────────
 function openNewListModal() {
-  document.getElementById('modal-title').textContent = 'Новый список';
-  document.getElementById('modal-subtitle-field').style.display = '';
-  document.getElementById('modal-link-field').style.display = '';
   document.getElementById('modal-name').value = '';
   document.getElementById('modal-subtitle').value = '';
   document.getElementById('modal-link').value = '';
   document.getElementById('modal-overlay').classList.add('open');
   setTimeout(() => document.getElementById('modal-name').focus(), 50);
-  modalCallback = (name, subtitle, link) => {
+  modalCallback = async (name, subtitle, link) => {
     if (!name.trim()) return;
     const id = 'custom-' + Date.now();
-    customLists.push({ id, title: name.trim(), subtitle: subtitle.trim(), link: link.trim() || null, tasks: [] });
-    saveLists();
+    const list = { id, title: name.trim(), subtitle: subtitle.trim(), link: link.trim() || null, tasks: [] };
+    customLists.push(list);
     renderAll();
-    scrollToList(id);
+    setTimeout(() => { const el = document.getElementById('list-' + id); if(el) el.scrollIntoView({ behavior:'smooth', block:'start' }); }, 50);
+    setSyncStatus('syncing');
+    try {
+      await sbFetch('custom_lists', {
+        method: 'POST',
+        headers: { 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify({ id, title: list.title, subtitle: list.subtitle || '', link: list.link || '', tasks: [], updated_at: new Date().toISOString() })
+      });
+      setSyncStatus('ok');
+    } catch(e) { console.error(e); setSyncStatus('error'); }
   };
 }
 
@@ -365,112 +497,64 @@ function closeModal(e) {
 
 function confirmModal() {
   if (!modalCallback) return;
-  const name = document.getElementById('modal-name').value;
-  const subtitle = document.getElementById('modal-subtitle').value;
-  const link = document.getElementById('modal-link').value;
-  modalCallback(name, subtitle, link);
+  modalCallback(
+    document.getElementById('modal-name').value,
+    document.getElementById('modal-subtitle').value,
+    document.getElementById('modal-link').value
+  );
   document.getElementById('modal-overlay').classList.remove('open');
   modalCallback = null;
 }
 
-// ─── TASK CRUD ────────────────────────────────────────────────────────────────
-function toggleDone(id, e) {
-  if (e) e.stopPropagation();
-  const t = getCheck(id);
-  t.done = !t.done;
-  saveChecks(); renderAll(); updateStats();
-}
-
-function addTaskToList(listId) {
-  const inp = document.getElementById('newtask-' + listId);
-  if (!inp || !inp.value.trim()) return;
-  const text = inp.value.trim();
-  inp.value = '';
-  const list = allLists().find(l => l.id === listId);
-  if (!list) return;
-  const taskId = listId + '-t' + Date.now();
-  list.tasks.push({ id: taskId, text, note: '', tags: [], subtasks: [] });
-  if (!STATIC_LISTS.find(l => l.id === listId)) saveLists();
-  renderAll(); updateStats();
-  inp.focus();
-}
-
-function deleteTask(listId, taskId, e) {
-  if (e) e.stopPropagation();
-  const list = allLists().find(l => l.id === listId);
-  if (!list) return;
-  list.tasks = list.tasks.filter(t => t.id !== taskId);
-  if (!STATIC_LISTS.find(l => l.id === listId)) saveLists();
-  renderAll(); updateStats();
-}
-
-function deleteList(listId, e) {
-  if (e) e.stopPropagation();
-  if (!confirm('Удалить список?')) return;
-  customLists = customLists.filter(l => l.id !== listId);
-  saveLists(); renderAll(); updateStats();
-}
-
-function addSubtask(taskId, listId, e) {
-  if (e && e.key !== 'Enter') return;
-  const inp = document.getElementById('newsub-' + taskId);
-  if (!inp || !inp.value.trim()) return;
-  const text = inp.value.trim();
-  inp.value = '';
-  const list = allLists().find(l => l.id === listId);
-  if (!list) return;
-  const task = list.tasks.find(t => t.id === taskId);
-  if (!task) return;
-  const subId = taskId + '-s' + Date.now();
-  task.subtasks.push({ id: subId, text });
-  if (!STATIC_LISTS.find(l => l.id === listId)) saveLists();
-  renderAll(); updateStats();
-  setTimeout(() => { const ni = document.getElementById('newsub-' + taskId); if (ni) ni.focus(); }, 10);
-}
-
-function deleteSubtask(taskId, subId, listId, e) {
-  if (e) e.stopPropagation();
-  const list = allLists().find(l => l.id === listId);
-  if (!list) return;
-  const task = list.tasks.find(t => t.id === taskId);
-  if (!task) return;
-  task.subtasks = task.subtasks.filter(s => s.id !== subId);
-  if (!STATIC_LISTS.find(l => l.id === listId)) saveLists();
-  renderAll(); updateStats();
-}
-
 // ─── COMMENTS ─────────────────────────────────────────────────────────────────
-function addComment(id, text) {
+async function addComment(taskId, text) {
   if (!text.trim()) return;
-  const t = getCheck(id);
-  if (!t.comments) t.comments = [];
-  t.comments.push({ text: text.trim(), date: new Date().toISOString() });
-  saveChecks(); renderComments(id); updateStats();
+  setSyncStatus('syncing');
+  try {
+    const result = await sbFetch('comments', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=representation' },
+      body: JSON.stringify({ task_id: taskId, text: text.trim() })
+    });
+    if (!comments[taskId]) comments[taskId] = [];
+    if (result && result[0]) comments[taskId].push(result[0]);
+    setSyncStatus('ok');
+    renderComments(taskId);
+    updateStats();
+  } catch(e) { console.error(e); setSyncStatus('error'); }
 }
-function deleteComment(id, idx, e) {
+
+async function deleteComment(taskId, commentId, e) {
   if (e) e.stopPropagation();
-  const t = getCheck(id);
-  t.comments.splice(idx, 1);
-  saveChecks(); renderComments(id); updateStats();
+  if (!comments[taskId]) return;
+  comments[taskId] = comments[taskId].filter(c => c.id !== commentId);
+  renderComments(taskId); updateStats();
+  setSyncStatus('syncing');
+  try {
+    await sbFetch('comments?id=eq.' + commentId, { method: 'DELETE' });
+    setSyncStatus('ok');
+  } catch(e) { console.error(e); setSyncStatus('error'); }
 }
+
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString('ru-RU', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
 }
+
 function renderComments(taskId) {
   const area = document.getElementById('comments-' + taskId);
   if (!area) return;
-  const t = getCheck(taskId);
-  const comments = t.comments || [];
+  const list = comments[taskId] || [];
   let html = '';
-  if (!comments.length) html += '<div class="empty-comments">Нет комментариев</div>';
-  else comments.forEach((c, i) => {
-    html += '<div class="comment"><div class="comment-avatar">В</div><div class="comment-content"><div class="comment-meta">' + formatDate(c.date) + '</div><div class="comment-text">' + c.text.replace(/</g,'&lt;') + '</div></div><button class="comment-delete" onclick="deleteComment(\'' + taskId + '\',' + i + ',event)">✕</button></div>';
+  if (!list.length) html += '<div class="empty-comments">Нет комментариев</div>';
+  else list.forEach(c => {
+    html += '<div class="comment"><div class="comment-avatar">В</div><div class="comment-content"><div class="comment-meta">' + formatDate(c.created_at) + '</div><div class="comment-text">' + esc(c.text) + '</div></div><button class="comment-delete" onclick="deleteComment(\'' + taskId + '\',\'' + c.id + '\',event)">✕</button></div>';
   });
   html += '<div class="comment-input-row"><textarea class="comment-input" id="cinput-' + taskId + '" placeholder="Добавить комментарий..." rows="1" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();submitComment(\'' + taskId + '\');}"></textarea><button class="comment-submit" onclick="submitComment(\'' + taskId + '\')">Отправить</button></div>';
   area.innerHTML = html;
   const badge = document.getElementById('badge-' + taskId);
-  if (badge) badge.textContent = comments.length > 0 ? comments.length + ' коммент.' : '';
+  if (badge) badge.textContent = list.length > 0 ? list.length + ' коммент.' : '';
 }
+
 function toggleComments(taskId, e) {
   if (e) e.stopPropagation();
   const area = document.getElementById('comments-' + taskId);
@@ -478,25 +562,29 @@ function toggleComments(taskId, e) {
   area.classList.toggle('open');
   if (area.classList.contains('open')) { renderComments(taskId); setTimeout(() => { const i = document.getElementById('cinput-' + taskId); if(i) i.focus(); }, 50); }
 }
+
 function submitComment(taskId) {
   const inp = document.getElementById('cinput-' + taskId);
   if (!inp) return;
-  addComment(taskId, inp.value); inp.value = '';
+  const text = inp.value; inp.value = '';
+  addComment(taskId, text);
 }
 
 // ─── RENDER ───────────────────────────────────────────────────────────────────
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 function renderTask(task, i, listId) {
-  const t = getCheck(task.id);
-  const cc = (t.comments || []).length;
+  const done = checks[task.id] ? checks[task.id].done : false;
+  const cc = (comments[task.id] || []).length;
   const tagHtml = (task.tags || []).map(tag => '<span class="tag ' + tag + '">' + (TAG_LABELS[tag]||tag) + '</span>').join('');
-  const hide = (currentFilter === 'done' && !t.done) || (currentFilter === 'open' && t.done) ? 'style="display:none"' : '';
+  const hide = (currentFilter === 'done' && !done) || (currentFilter === 'open' && done) ? 'style="display:none"' : '';
 
   let html = '<div class="task" id="twrap-' + task.id + '" ' + hide + '>';
   html += '<div class="task-row">';
   html += '<div class="task-num">' + (i+1) + '.</div>';
-  html += '<div class="checkbox ' + (t.done?'checked':'') + '" onclick="toggleDone(\'' + task.id + '\',event)"></div>';
+  html += '<div class="checkbox ' + (done?'checked':'') + '" onclick="toggleDone(\'' + task.id + '\',event)"></div>';
   html += '<div class="task-body">';
-  html += '<div class="task-text ' + (t.done?'done':'') + '">' + esc(task.text) + '</div>';
+  html += '<div class="task-text ' + (done?'done':'') + '">' + esc(task.text) + '</div>';
   if (task.note) html += '<div class="task-note">' + esc(task.note) + '</div>';
   if (tagHtml) html += '<div class="task-tags">' + tagHtml + '</div>';
   html += '</div>';
@@ -505,40 +593,33 @@ function renderTask(task, i, listId) {
   html += '<button class="action-btn danger" onclick="deleteTask(\'' + listId + '\',\'' + task.id + '\',event)">Удалить</button>';
   html += '</div></div>';
 
-  // Subtasks
   if (task.subtasks && task.subtasks.length) {
     html += '<div class="subtasks">';
     task.subtasks.forEach(sub => {
-      const st = getCheck(sub.id);
-      html += '<div class="subtask"><div class="checkbox ' + (st.done?'checked':'') + '" onclick="toggleDone(\'' + sub.id + '\',event)"></div><div class="subtask-text ' + (st.done?'done':'') + '" onclick="toggleDone(\'' + sub.id + '\',event)">' + esc(sub.text) + '</div><button class="subtask-del" onclick="deleteSubtask(\'' + task.id + '\',\'' + sub.id + '\',\'' + listId + '\',event)">✕</button></div>';
+      const sd = checks[sub.id] ? checks[sub.id].done : false;
+      html += '<div class="subtask"><div class="checkbox ' + (sd?'checked':'') + '" onclick="toggleDone(\'' + sub.id + '\',event)"></div><div class="subtask-text ' + (sd?'done':'') + '" onclick="toggleDone(\'' + sub.id + '\',event)">' + esc(sub.text) + '</div><button class="subtask-del" onclick="deleteSubtask(\'' + task.id + '\',\'' + sub.id + '\',\'' + listId + '\',event)">✕</button></div>';
     });
     html += '</div>';
   }
-  // Add subtask input
   html += '<div class="subtasks"><div class="add-subtask-row"><input class="add-subtask-input" id="newsub-' + task.id + '" placeholder="+ подзадача" onkeydown="addSubtask(\'' + task.id + '\',\'' + listId + '\',event)"></div></div>';
-
-  // Comments
   html += '<div class="comments-area" id="comments-' + task.id + '"></div>';
   html += '</div>';
   return html;
 }
 
 function renderListBlock(list) {
+  const { done, total } = countDone(list.tasks);
+  const isCustom = !!customLists.find(l => l.id === list.id);
   let html = '<div class="list-block" id="list-' + list.id + '">';
   html += '<div class="list-header">';
   html += '<div class="list-title">' + esc(list.title) + '</div>';
   if (list.subtitle) html += '<div class="list-subtitle">' + esc(list.subtitle) + '</div>';
-  const { done, total } = countDone(list.tasks);
   html += '<div class="list-progress" id="progress-' + list.id + '">' + done + '/' + total + '</div>';
   html += '<div class="list-header-spacer"></div>';
   if (list.link) html += '<a class="list-link-btn" href="' + list.link + '" target="_blank">&#x2197; Таблица</a>';
-  if (customLists.find(l => l.id === list.id)) html += '<button class="list-delete-btn" onclick="deleteList(\'' + list.id + '\',event)" title="Удалить список">✕</button>';
+  if (isCustom) html += '<button class="list-delete-btn" onclick="deleteList(\'' + list.id + '\',event)">✕</button>';
   html += '</div>';
-
-  // Tasks
   list.tasks.forEach((task, i) => { html += renderTask(task, i, list.id); });
-
-  // Add task row
   html += '<div class="add-task-row"><input class="add-task-input" id="newtask-' + list.id + '" placeholder="Добавить задачу..." onkeydown="if(event.key===\'Enter\')addTaskToList(\'' + list.id + '\')"><button class="add-task-btn" onclick="addTaskToList(\'' + list.id + '\')">+ Задача</button></div>';
   html += '</div>';
   return html;
@@ -546,15 +627,13 @@ function renderListBlock(list) {
 
 function renderNav() {
   const nav = document.getElementById('nav-lists');
-  const lists = allLists();
-  nav.innerHTML = lists.map(list => {
+  nav.innerHTML = allLists().map(list => {
     const { done, total } = countDone(list.tasks);
-    const open = total - done;
     const isCustom = !!customLists.find(l => l.id === list.id);
     const icon = isCustom ? '📁' : (list.id==='pnhd'?'📋':list.id==='studio'?'🎨':list.id==='tematika'?'🏷':'🔍');
     return '<a class="nav-item" href="#list-' + list.id + '">' + icon + ' ' + esc(list.title) +
-      '<span class="nav-count" id="nav-count-' + list.id + '">' + open + '</span>' +
-      (isCustom ? '<button class="nav-delete" onclick="deleteList(\'' + list.id + '\',event)" title="Удалить">✕</button>' : '') +
+      '<span class="nav-count" id="nav-count-' + list.id + '">' + (total-done) + '</span>' +
+      (isCustom ? '<button class="nav-delete" onclick="deleteList(\'' + list.id + '\',event)">✕</button>' : '') +
       '</a>';
   }).join('');
   nav.querySelectorAll('a').forEach(a => {
@@ -569,16 +648,15 @@ function renderNav() {
 }
 
 function renderAll() {
-  const content = document.getElementById('content');
-  content.innerHTML = allLists().map(renderListBlock).join('');
+  document.getElementById('content').innerHTML = allLists().map(renderListBlock).join('');
   renderNav();
 }
 
 function countDone(tasks) {
   let done = 0, total = 0;
   tasks.forEach(t => {
-    total++; if (getCheck(t.id).done) done++;
-    (t.subtasks||[]).forEach(s => { total++; if (getCheck(s.id).done) done++; });
+    total++; if (checks[t.id] && checks[t.id].done) done++;
+    (t.subtasks||[]).forEach(s => { total++; if (checks[s.id] && checks[s.id].done) done++; });
   });
   return { done, total };
 }
@@ -592,7 +670,6 @@ function updateStats() {
   const pct = ta ? Math.round(td/ta*100) : 0;
   document.getElementById('global-progress').style.width = pct + '%';
   document.getElementById('progress-label').textContent = pct + '% выполнено';
-  // update nav counts
   allLists().forEach(list => {
     const { done, total } = countDone(list.tasks);
     const nc = document.getElementById('nav-count-' + list.id);
@@ -608,32 +685,17 @@ function setFilter(mode) {
   allLists().forEach(list => list.tasks.forEach(task => {
     const wrap = document.getElementById('twrap-' + task.id);
     if (!wrap) return;
-    const done = getCheck(task.id).done;
+    const done = checks[task.id] ? checks[task.id].done : false;
     if (mode === 'done' && !done) wrap.style.display = 'none';
     else if (mode === 'open' && done) wrap.style.display = 'none';
     else wrap.style.display = '';
   }));
 }
 
-function scrollToList(id) {
-  setTimeout(() => {
-    const el = document.getElementById('list-' + id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 50);
-}
-
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// Keyboard: Escape closes modal
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.getElementById('date-display').textContent = new Date().toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' });
 
-// Date
-const el = document.getElementById('date-display');
-if (el) el.textContent = new Date().toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' });
-
-loadState();
-renderAll();
-updateStats();
+loadFromSupabase();
 </script>
 </body>
 </html>
