@@ -45,7 +45,7 @@
   .sidebar.collapsed .nav-section { padding: 12px 0 4px; text-align: center; font-size: 8px; letter-spacing: 0; }
   .nav-lists { flex: 1; }
   .nav-item { display: flex; align-items: center; gap: 8px; padding: 6px 14px; font-size: 13.5px; color: var(--text-secondary); cursor: pointer; transition: background 0.12s, color 0.12s; text-decoration: none; position: relative; user-select: none; }
-  .sidebar.collapsed .nav-item { justify-content: center; padding: 8px 0; }
+  .sidebar.collapsed .nav-item { justify-content: center; padding: 8px 0; width: 52px; }
   .nav-item:hover { background: var(--border-light); color: var(--text); }
   .nav-item:hover .nav-delete { opacity: 1; }
   .nav-item.active { background: var(--border); color: var(--text); font-weight: 500; }
@@ -54,13 +54,13 @@
   .nav-delete { opacity: 0; transition: opacity 0.1s; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; padding: 0 2px; margin-left: 4px; }
   .nav-delete:hover { color: var(--danger); }
   .nav-add-list { display: flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: color 0.12s; border-top: 1px solid var(--border-light); margin-top: 4px; white-space: nowrap; overflow: hidden; }
-  .sidebar.collapsed .nav-add-list { justify-content: center; padding: 8px 0; }
+  .sidebar.collapsed .nav-add-list { justify-content: center; padding: 8px 0; width: 52px; }
   .nav-add-list:hover { color: var(--accent); }
   .nav-add-list-label { overflow: hidden; white-space: nowrap; }
   .sidebar.collapsed .nav-add-list-label { display: none; }
   .nav-bottom { border-top: 1px solid var(--border); padding: 8px 0; }
   .nav-filter-item { display: flex; align-items: center; gap: 8px; padding: 5px 14px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: background 0.1s, color 0.1s; white-space: nowrap; overflow: hidden; }
-  .sidebar.collapsed .nav-filter-item { justify-content: center; padding: 6px 0; }
+  .sidebar.collapsed .nav-filter-item { justify-content: center; padding: 6px 0; width: 52px; }
   .nav-filter-item:hover { background: var(--border-light); color: var(--text); }
   .nav-filter-item.active-filter { color: var(--accent); font-weight: 500; }
   .nav-filter-label { overflow: hidden; white-space: nowrap; }
@@ -179,6 +179,21 @@
   .btn-cancel:hover { background: var(--bg-hover); }
   .btn-primary { background: var(--accent); color: white; border: none; border-radius: var(--radius); padding: 7px 16px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; cursor: pointer; }
   .btn-primary:hover { opacity: 0.85; }
+  .task-text[contenteditable="true"],
+  .task-note[contenteditable="true"],
+  .subtask-text[contenteditable="true"],
+  .list-title[contenteditable="true"],
+  .list-subtitle[contenteditable="true"] {
+    outline: none;
+    border-radius: 3px;
+    background: var(--accent-light);
+    padding: 1px 4px;
+    margin: -1px -4px;
+    cursor: text;
+  }
+  .edit-hint { font-size: 11px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; margin-left: 6px; opacity: 0; transition: opacity 0.1s; }
+  .list-header:hover .edit-hint { opacity: 1; }
+  .task-row:hover .edit-hint { opacity: 1; }
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -381,13 +396,13 @@ const STATIC_LISTS = [
 const TAG_LABELS = { waiting: 'ждём', urgent: 'срочно', dev: 'разработка', seo: 'SEO' };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
-let checks = {};      // { task_id: { done, updated_at } }
-let comments = {};    // { task_id: [{ id, text, created_at }] }
-let customLists = []; // доп. списки из Supabase
+let checks = {};   // { task_id: { done } }
+let comments = {}; // { task_id: [{ id, text, created_at }] }
+let allListsData = []; // все списки из Supabase
 let currentFilter = 'all';
 let modalCallback = null;
 
-function allLists() { return [...STATIC_LISTS, ...customLists]; }
+function allLists() { return allListsData; }
 
 // ─── SUPABASE LOAD ────────────────────────────────────────────────────────────
 async function loadFromSupabase() {
@@ -398,18 +413,38 @@ async function loadFromSupabase() {
       sbFetch('comments?select=*&order=created_at.asc'),
       sbFetch('custom_lists?select=*&order=updated_at.asc'),
     ]);
+
     checks = {};
     (checksData || []).forEach(r => { checks[r.task_id] = { done: r.done }; });
+
     comments = {};
     (commentsData || []).forEach(r => {
       if (!comments[r.task_id]) comments[r.task_id] = [];
       comments[r.task_id].push(r);
     });
-    customLists = (listsData || []).map(r => ({ ...r, tasks: r.tasks || [] }));
+
+    // Если в базе есть списки — используем их
+    // Если нет — первый запуск, записываем статические данные
+    if (listsData && listsData.length > 0) {
+      allListsData = listsData.map(r => ({ ...r, tasks: r.tasks || [] }));
+    } else {
+      // Первый запуск — сидируем базу статическими списками
+      allListsData = STATIC_LISTS.map(l => ({ ...l }));
+      await Promise.all(STATIC_LISTS.map(list =>
+        sbFetch('custom_lists', {
+          method: 'POST',
+          headers: { 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify({ id: list.id, title: list.title, subtitle: list.subtitle || '', link: list.link || '', tasks: list.tasks, updated_at: new Date().toISOString() })
+        })
+      ));
+    }
+
     setSyncStatus('ok');
   } catch(e) {
     console.error('Load error:', e);
     setSyncStatus('error');
+    // Fallback — показываем статические данные
+    allListsData = STATIC_LISTS.map(l => ({ ...l }));
   }
   renderAll();
   updateStats();
@@ -440,21 +475,21 @@ async function addTaskToList(listId) {
   if (!inp || !inp.value.trim()) return;
   const text = inp.value.trim();
   inp.value = '';
-  const list = allLists().find(l => l.id === listId);
+  const list = allListsData.find(l => l.id === listId);
   if (!list) return;
   const taskId = listId + '-t' + Date.now();
   list.tasks.push({ id: taskId, text, note: '', tags: [], subtasks: [] });
   renderAll(); updateStats(); inp.focus();
-  if (customLists.find(l => l.id === listId)) await saveCustomList(listId);
+  await saveList(listId);
 }
 
 async function deleteTask(listId, taskId, e) {
   if (e) e.stopPropagation();
-  const list = allLists().find(l => l.id === listId);
+  const list = allListsData.find(l => l.id === listId);
   if (!list) return;
   list.tasks = list.tasks.filter(t => t.id !== taskId);
   renderAll(); updateStats();
-  if (customLists.find(l => l.id === listId)) await saveCustomList(listId);
+  await saveList(listId);
 }
 
 async function addSubtask(taskId, listId, e) {
@@ -463,30 +498,30 @@ async function addSubtask(taskId, listId, e) {
   if (!inp || !inp.value.trim()) return;
   const text = inp.value.trim();
   inp.value = '';
-  const list = allLists().find(l => l.id === listId);
+  const list = allListsData.find(l => l.id === listId);
   if (!list) return;
   const task = list.tasks.find(t => t.id === taskId);
   if (!task) return;
   task.subtasks.push({ id: taskId + '-s' + Date.now(), text });
   renderAll(); updateStats();
   setTimeout(() => { const ni = document.getElementById('newsub-' + taskId); if (ni) ni.focus(); }, 10);
-  if (customLists.find(l => l.id === listId)) await saveCustomList(listId);
+  await saveList(listId);
 }
 
 async function deleteSubtask(taskId, subId, listId, e) {
   if (e) e.stopPropagation();
-  const list = allLists().find(l => l.id === listId);
+  const list = allListsData.find(l => l.id === listId);
   if (!list) return;
   const task = list.tasks.find(t => t.id === taskId);
   if (!task) return;
   task.subtasks = task.subtasks.filter(s => s.id !== subId);
   renderAll(); updateStats();
-  if (customLists.find(l => l.id === listId)) await saveCustomList(listId);
+  await saveList(listId);
 }
 
-// ─── CUSTOM LISTS ─────────────────────────────────────────────────────────────
-async function saveCustomList(listId) {
-  const list = customLists.find(l => l.id === listId);
+// ─── SAVE LIST ────────────────────────────────────────────────────────────────
+async function saveList(listId) {
+  const list = allListsData.find(l => l.id === listId);
   if (!list) return;
   setSyncStatus('syncing');
   try {
@@ -502,7 +537,7 @@ async function saveCustomList(listId) {
 async function deleteList(listId, e) {
   if (e) e.stopPropagation();
   if (!confirm('Удалить список?')) return;
-  customLists = customLists.filter(l => l.id !== listId);
+  allListsData = allListsData.filter(l => l.id !== listId);
   renderAll(); updateStats();
   setSyncStatus('syncing');
   try {
@@ -522,18 +557,10 @@ function openNewListModal() {
     if (!name.trim()) return;
     const id = 'custom-' + Date.now();
     const list = { id, title: name.trim(), subtitle: subtitle.trim(), link: link.trim() || null, tasks: [] };
-    customLists.push(list);
+    allListsData.push(list);
     renderAll();
     setTimeout(() => { const el = document.getElementById('list-' + id); if(el) el.scrollIntoView({ behavior:'smooth', block:'start' }); }, 50);
-    setSyncStatus('syncing');
-    try {
-      await sbFetch('custom_lists', {
-        method: 'POST',
-        headers: { 'Prefer': 'resolution=merge-duplicates' },
-        body: JSON.stringify({ id, title: list.title, subtitle: list.subtitle || '', link: list.link || '', tasks: [], updated_at: new Date().toISOString() })
-      });
-      setSyncStatus('ok');
-    } catch(e) { console.error(e); setSyncStatus('error'); }
+    await saveList(id);
   };
 }
 
@@ -618,6 +645,97 @@ function submitComment(taskId) {
   addComment(taskId, text);
 }
 
+// ─── INLINE EDITING ───────────────────────────────────────────────────────────
+function makeEditable(el, onSave) {
+  el.contentEditable = 'true';
+  el.focus();
+  // place cursor at end
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  function save() {
+    el.contentEditable = 'false';
+    onSave(el.textContent.trim());
+  }
+  el.addEventListener('keydown', function handler(e) {
+    if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+    if (e.key === 'Escape') { el.contentEditable = 'false'; el.removeEventListener('keydown', handler); }
+  });
+  el.addEventListener('blur', save, { once: true });
+}
+
+async function editTaskText(taskId, listId) {
+  const el = document.getElementById('ttext-' + taskId);
+  if (!el) return;
+  makeEditable(el, async (newText) => {
+    if (!newText) return;
+    const list = allListsData.find(l => l.id === listId);
+    if (!list) return;
+    const task = list.tasks.find(t => t.id === taskId);
+    if (task) task.text = newText;
+    await saveList(listId);
+    renderAll(); updateStats();
+  });
+}
+
+async function editTaskNote(taskId, listId) {
+  const el = document.getElementById('tnote-' + taskId);
+  if (!el) return;
+  if (!el.textContent.trim()) el.textContent = 'Добавить заметку...';
+  makeEditable(el, async (newNote) => {
+    const list = allListsData.find(l => l.id === listId);
+    if (!list) return;
+    const task = list.tasks.find(t => t.id === taskId);
+    if (task) task.note = newNote === 'Добавить заметку...' ? '' : newNote;
+    await saveList(listId);
+    renderAll(); updateStats();
+  });
+}
+
+async function editSubtaskText(taskId, subId, listId) {
+  const el = document.getElementById('stext-' + subId);
+  if (!el) return;
+  makeEditable(el, async (newText) => {
+    if (!newText) return;
+    const list = allListsData.find(l => l.id === listId);
+    if (!list) return;
+    const task = list.tasks.find(t => t.id === taskId);
+    if (!task) return;
+    const sub = task.subtasks.find(s => s.id === subId);
+    if (sub) sub.text = newText;
+    await saveList(listId);
+    renderAll(); updateStats();
+  });
+}
+
+async function editListTitle(listId) {
+  const el = document.getElementById('ltitle-' + listId);
+  if (!el) return;
+  makeEditable(el, async (newTitle) => {
+    if (!newTitle) return;
+    const list = allListsData.find(l => l.id === listId);
+    if (list) list.title = newTitle;
+    await saveList(listId);
+    renderAll(); updateStats();
+  });
+}
+
+async function editListSubtitle(listId) {
+  const el = document.getElementById('lsub-' + listId);
+  if (!el) return;
+  if (!el.textContent.trim()) el.textContent = 'подпись...';
+  makeEditable(el, async (newSub) => {
+    const list = allListsData.find(l => l.id === listId);
+    if (list) list.subtitle = newSub === 'подпись...' ? '' : newSub;
+    await saveList(listId);
+    renderAll(); updateStats();
+  });
+}
+
 // ─── RENDER ───────────────────────────────────────────────────────────────────
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -632,8 +750,8 @@ function renderTask(task, i, listId) {
   html += '<div class="task-num">' + (i+1) + '.</div>';
   html += '<div class="checkbox ' + (done?'checked':'') + '" onclick="toggleDone(\'' + task.id + '\',event)"></div>';
   html += '<div class="task-body">';
-  html += '<div class="task-text ' + (done?'done':'') + '">' + esc(task.text) + '</div>';
-  if (task.note) html += '<div class="task-note">' + esc(task.note) + '</div>';
+  html += '<div class="task-text ' + (done?'done':'') + '" id="ttext-' + task.id + '" ondblclick="editTaskText(\'' + task.id + '\',\'' + listId + '\')" title="Двойной клик — редактировать">' + esc(task.text) + '</div>';
+  html += '<div class="task-note" id="tnote-' + task.id + '" ondblclick="editTaskNote(\'' + task.id + '\',\'' + listId + '\')" title="Двойной клик — редактировать заметку">' + (task.note ? esc(task.note) : '<span style="color:var(--border);font-size:11px">двойной клик — добавить заметку</span>') + '</div>';
   if (tagHtml) html += '<div class="task-tags">' + tagHtml + '</div>';
   html += '</div>';
   html += '<div class="task-actions">';
@@ -645,7 +763,11 @@ function renderTask(task, i, listId) {
     html += '<div class="subtasks">';
     task.subtasks.forEach(sub => {
       const sd = checks[sub.id] ? checks[sub.id].done : false;
-      html += '<div class="subtask"><div class="checkbox ' + (sd?'checked':'') + '" onclick="toggleDone(\'' + sub.id + '\',event)"></div><div class="subtask-text ' + (sd?'done':'') + '" onclick="toggleDone(\'' + sub.id + '\',event)">' + esc(sub.text) + '</div><button class="subtask-del" onclick="deleteSubtask(\'' + task.id + '\',\'' + sub.id + '\',\'' + listId + '\',event)">✕</button></div>';
+      html += '<div class="subtask">' +
+        '<div class="checkbox ' + (sd?'checked':'') + '" onclick="toggleDone(\'' + sub.id + '\',event)"></div>' +
+        '<div class="subtask-text ' + (sd?'done':'') + '" id="stext-' + sub.id + '" onclick="toggleDone(\'' + sub.id + '\',event)" ondblclick="event.stopPropagation();editSubtaskText(\'' + task.id + '\',\'' + sub.id + '\',\'' + listId + '\')" title="Двойной клик — редактировать">' + esc(sub.text) + '</div>' +
+        '<button class="subtask-del" onclick="deleteSubtask(\'' + task.id + '\',\'' + sub.id + '\',\'' + listId + '\',event)">✕</button>' +
+        '</div>';
     });
     html += '</div>';
   }
@@ -657,15 +779,15 @@ function renderTask(task, i, listId) {
 
 function renderListBlock(list) {
   const { done, total } = countDone(list.tasks);
-  const isCustom = !!customLists.find(l => l.id === list.id);
   let html = '<div class="list-block" id="list-' + list.id + '">';
   html += '<div class="list-header">';
-  html += '<div class="list-title">' + esc(list.title) + '</div>';
-  if (list.subtitle) html += '<div class="list-subtitle">' + esc(list.subtitle) + '</div>';
+  html += '<div class="list-title" id="ltitle-' + list.id + '" ondblclick="editListTitle(\'' + list.id + '\')" title="Двойной клик — редактировать">' + esc(list.title) + '</div>';
+  html += '<div class="list-subtitle" id="lsub-' + list.id + '" ondblclick="editListSubtitle(\'' + list.id + '\')" title="Двойной клик — редактировать подпись">' + (list.subtitle ? esc(list.subtitle) : '') + '</div>';
   html += '<div class="list-progress" id="progress-' + list.id + '">' + done + '/' + total + '</div>';
+  html += '<span class="edit-hint">✎ двойной клик</span>';
   html += '<div class="list-header-spacer"></div>';
   if (list.link) html += '<a class="list-link-btn" href="' + list.link + '" target="_blank">&#x2197; Таблица</a>';
-  if (isCustom) html += '<button class="list-delete-btn" onclick="deleteList(\'' + list.id + '\',event)">✕</button>';
+  html += '<button class="list-delete-btn" onclick="deleteList(\'' + list.id + '\',event)" title="Удалить список">✕</button>';
   html += '</div>';
   list.tasks.forEach((task, i) => { html += renderTask(task, i, list.id); });
   html += '<div class="add-task-row"><input class="add-task-input" id="newtask-' + list.id + '" placeholder="Добавить задачу..." onkeydown="if(event.key===\'Enter\')addTaskToList(\'' + list.id + '\')"><button class="add-task-btn" onclick="addTaskToList(\'' + list.id + '\')">+ Задача</button></div>';
@@ -675,15 +797,14 @@ function renderListBlock(list) {
 
 function renderNav() {
   const nav = document.getElementById('nav-lists');
-  nav.innerHTML = allLists().map(list => {
+  nav.innerHTML = allListsData.map(list => {
     const { done, total } = countDone(list.tasks);
-    const isCustom = !!customLists.find(l => l.id === list.id);
-    const icon = isCustom ? '📁' : (list.id==='pnhd'?'📋':list.id==='studio'?'🎨':list.id==='tematika'?'🏷':'🔍');
+    const icon = list.id==='pnhd'?'📋':list.id==='studio'?'🎨':list.id==='tematika'?'🏷':list.id==='seo'?'🔍':'📁';
     return '<a class="nav-item" href="#list-' + list.id + '">' +
       '<span style="flex-shrink:0">' + icon + '</span>' +
       '<span class="nav-label">' + esc(list.title) + '</span>' +
       '<span class="nav-count" id="nav-count-' + list.id + '">' + (total-done) + '</span>' +
-      (isCustom ? '<button class="nav-delete" onclick="deleteList(\'' + list.id + '\',event)">✕</button>' : '') +
+      '<button class="nav-delete" onclick="deleteList(\'' + list.id + '\',event)">✕</button>' +
       '</a>';
   }).join('');
   nav.querySelectorAll('a').forEach(a => {
@@ -693,7 +814,6 @@ function renderNav() {
       if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       nav.querySelectorAll('a').forEach(n => n.classList.remove('active'));
       a.classList.add('active');
-      // close mobile sidebar on nav click
       closeMobileSidebar();
     });
   });
@@ -734,7 +854,7 @@ function closeMobileSidebar() {
 })();
 
 function renderAll() {
-  document.getElementById('content').innerHTML = allLists().map(renderListBlock).join('');
+  document.getElementById('content').innerHTML = allListsData.map(renderListBlock).join('');
   renderNav();
 }
 
@@ -749,14 +869,14 @@ function countDone(tasks) {
 
 function updateStats() {
   let td = 0, ta = 0;
-  allLists().forEach(list => { const { done, total } = countDone(list.tasks); td += done; ta += total; });
+  allListsData.forEach(list => { const { done, total } = countDone(list.tasks); td += done; ta += total; });
   document.getElementById('stat-total').textContent = ta;
   document.getElementById('stat-done').textContent = td;
   document.getElementById('stat-open').textContent = ta - td;
   const pct = ta ? Math.round(td/ta*100) : 0;
   document.getElementById('global-progress').style.width = pct + '%';
   document.getElementById('progress-label').textContent = pct + '% выполнено';
-  allLists().forEach(list => {
+  allListsData.forEach(list => {
     const { done, total } = countDone(list.tasks);
     const nc = document.getElementById('nav-count-' + list.id);
     if (nc) nc.textContent = total - done;
@@ -768,7 +888,7 @@ function updateStats() {
 function setFilter(mode) {
   currentFilter = mode;
   ['all','open','done'].forEach(m => document.getElementById('filter-'+m).classList.toggle('active-filter', m===mode));
-  allLists().forEach(list => list.tasks.forEach(task => {
+  allListsData.forEach(list => list.tasks.forEach(task => {
     const wrap = document.getElementById('twrap-' + task.id);
     if (!wrap) return;
     const done = checks[task.id] ? checks[task.id].done : false;
