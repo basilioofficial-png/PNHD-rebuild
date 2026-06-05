@@ -45,7 +45,7 @@
   .sidebar.collapsed .nav-section { padding: 12px 0 4px; text-align: center; font-size: 8px; letter-spacing: 0; }
   .nav-lists { flex: 1; }
   .nav-item { display: flex; align-items: center; gap: 8px; padding: 6px 14px; font-size: 13.5px; color: var(--text-secondary); cursor: pointer; transition: background 0.12s, color 0.12s; text-decoration: none; position: relative; user-select: none; }
-  .sidebar.collapsed .nav-item { justify-content: center; padding: 8px 0; width: 52px; }
+  .sidebar.collapsed .nav-item { justify-content: center; padding: 8px 0; width: 52px; gap: 0; }
   .nav-item:hover { background: var(--border-light); color: var(--text); }
   .nav-item:hover .nav-delete { opacity: 1; }
   .nav-item.active { background: var(--border); color: var(--text); font-weight: 500; }
@@ -54,13 +54,13 @@
   .nav-delete { opacity: 0; transition: opacity 0.1s; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; padding: 0 2px; margin-left: 4px; }
   .nav-delete:hover { color: var(--danger); }
   .nav-add-list { display: flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: color 0.12s; border-top: 1px solid var(--border-light); margin-top: 4px; white-space: nowrap; overflow: hidden; }
-  .sidebar.collapsed .nav-add-list { justify-content: center; padding: 8px 0; width: 52px; }
+  .sidebar.collapsed .nav-add-list { justify-content: center; padding: 8px 0; width: 52px; gap: 0; }
   .nav-add-list:hover { color: var(--accent); }
   .nav-add-list-label { overflow: hidden; white-space: nowrap; }
   .sidebar.collapsed .nav-add-list-label { display: none; }
   .nav-bottom { border-top: 1px solid var(--border); padding: 8px 0; }
   .nav-filter-item { display: flex; align-items: center; gap: 8px; padding: 5px 14px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: background 0.1s, color 0.1s; white-space: nowrap; overflow: hidden; }
-  .sidebar.collapsed .nav-filter-item { justify-content: center; padding: 6px 0; width: 52px; }
+  .sidebar.collapsed .nav-filter-item { justify-content: center; padding: 6px 0; width: 52px; gap: 0; }
   .nav-filter-item:hover { background: var(--border-light); color: var(--text); }
   .nav-filter-item.active-filter { color: var(--accent); font-weight: 500; }
   .nav-filter-label { overflow: hidden; white-space: nowrap; }
